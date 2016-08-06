@@ -69,17 +69,17 @@ else
 endif
 
 BUILD_DIR = ./build
-TESTS = $(BUILD_DIR)/md_replay
+TESTS = $(BUILD_DIR)/find_puddles
 
 ifeq ($(MAKECMDGOALS),test)
 	BUILD_DIR = ./build.test
-	TESTS = $(BUILD_DIR)/puddles_unittest
+	TESTS = $(BUILD_DIR)/find_puddles_unittest
 endif
 
 ifeq ($(MAKECMDGOALS),coverage)
 	BUILD_DIR = ./build.coverage
 	EXTRA_CXXFLAGS += -fprofile-arcs -ftest-coverage
-	TESTS = $(BUILD_DIR)/puddles_coverage $(BUILD_DIR)/puddles_unittest_coverage
+	TESTS = $(BUILD_DIR)/find_puddles_coverage $(BUILD_DIR)/find_puddles_unittest_coverage
 endif
 
 TRAVIS_BUILD_DIR=$(PWD)
@@ -92,22 +92,22 @@ GTEST_HEADERS = $(wildcard $(GTEST_DIR)/include/gtest/*.h) \
 # House-keeping build targets.
 
 all : $(BUILD_DIR)
-	make $(BUILD_DIR)/puddles
+	make $(BUILD_DIR)/find_puddles
 
 test: $(BUILD_DIR) $(TESTS)
-	$(BUILD_DIR)/puddles_unittest
+	$(BUILD_DIR)/find_puddles_unittest
 
 coverage: $(BUILD_DIR) $(TESTS)
 
 coverage-report:
 	make coverage
-	./build.coverage/puddles_coverage
+	./build.coverage/find_puddles_unittest_coverage
 	mkdir -p $(TRAVIS_BUILD_DIR)/coverals
 	find . -name "*.gcda" -exec cp "{}" $(TRAVIS_BUILD_DIR)/coverals/ \;
 	find . -name "*.gcno" -exec cp "{}" $(TRAVIS_BUILD_DIR)/coverals/ \;
 	lcov --directory $(TRAVIS_BUILD_DIR)/coverals --base-directory ./ --capture --output-file $(TRAVIS_BUILD_DIR)/coverals/coverage.info
 	lcov --remove $(TRAVIS_BUILD_DIR)/coverals/coverage.info "/usr*" -o $(TRAVIS_BUILD_DIR)/coverals/coverage.info
-	genhtml -o $(TRAVIS_BUILD_DIR)/coverals -t "puddles" --num-spaces 4 $(TRAVIS_BUILD_DIR)/coverals/coverage.info
+	genhtml -o $(TRAVIS_BUILD_DIR)/coverals -t "find_puddles" --num-spaces 4 $(TRAVIS_BUILD_DIR)/coverals/coverage.info
 
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
@@ -155,10 +155,10 @@ $(BUILD_DIR)/feed_handler_unittest.o : $(USER_DIR)/feed_handler_unittest.cpp \
                      $(USER_DIR)/feed_handler.h $(GTEST_HEADERS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o $@ -c $(USER_DIR)/feed_handler_unittest.cpp
 
-$(BUILD_DIR)/puddles_unittest : $(BUILD_DIR)/feed_handler.o $(BUILD_DIR)/feed_handler_unittest.o $(BUILD_DIR)/gtest_main.a
+$(BUILD_DIR)/find_puddles_unittest : $(BUILD_DIR)/feed_handler.o $(BUILD_DIR)/feed_handler_unittest.o $(BUILD_DIR)/gtest_main.a
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $^ -o $@ $(RPATH)
 
-$(BUILD_DIR)/puddles : $(BUILD_DIR)/main.o
+$(BUILD_DIR)/find_puddles : $(BUILD_DIR)/main.o
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $^ -o $@ $(RPATH)
 
 $(BUILD_DIR)/feed_handler_coverage : $(BUILD_DIR)/feed_handler.o $(BUILD_DIR)/feed_handler_unittest.o $(BUILD_DIR)/gtest_main.a
