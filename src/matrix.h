@@ -45,9 +45,10 @@ using entry_pos_set_t =
 /*
  *
  */
+using entry_pos_ordered_t = std::set<entry_pos_t>;
 struct puddle {
     puddle(entry_pos_set_t&, int height);
-    std::set<entry_pos_t> entries_;
+    entry_pos_ordered_t entries_;
     int height_;
 };
 std::ostream& operator<<(std::ostream&, const puddle&);
