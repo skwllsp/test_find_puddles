@@ -52,7 +52,8 @@ int test_ns::matrix::get_height(const entry_pos_t& p) const {
 bool
 test_ns::matrix::
 find_one_puddle(const int entry_h, const entry_pos_t& initial_pos,
-        entry_pos_set_t& searched_entries) const {
+        entry_pos_set_t& searched_entries,
+        entry_pos_set_t& below_level_entries) const {
     size_t max_row = rows_.size() - 1;
     size_t max_col = rows_[0].size() - 1;
     std::set<entry_pos_t> to_search_positions;
@@ -60,11 +61,16 @@ find_one_puddle(const int entry_h, const entry_pos_t& initial_pos,
     searched_entries.clear();
     bool edge_found = false;
     auto check_one_position =
-            [entry_h, &to_search_positions, &searched_entries, this]
+            [entry_h, &to_search_positions, &searched_entries,
+             this, &below_level_entries]
             (const entry_pos_t& next_pos) {
-        if (this->get_height(next_pos) == entry_h) {
+        int next_pos_height = this->get_height(next_pos);
+        if (next_pos_height <= entry_h) {
             if (searched_entries.find(next_pos) == searched_entries.end()) {
                 to_search_positions.insert(next_pos);
+                if (next_pos_height < entry_h) {
+                    below_level_entries.insert(next_pos);
+                }
             }
         }
     };
@@ -125,17 +131,33 @@ void
 test_ns::matrix::
 find_one_puddle_and_update(int entry_h, const entry_pos_t& entry_pos,
         entry_pos_set_t& dont_check,
-        std::vector<puddle>& puddles,
+        std::list<puddle>& puddles,
         size_t& yet_not_found_positions) const {
     entry_pos_set_t searched_entries;
+    entry_pos_set_t below_level_entries;
     bool is_puddle = find_one_puddle(entry_h, entry_pos,
-            searched_entries);
+            searched_entries, below_level_entries);
     yet_not_found_positions -= searched_entries.size();
     for (const auto & e : searched_entries) {
         dont_check.insert(e);
     }
+    if (is_puddle && !below_level_entries.empty()) {
+        for (auto const & below_entry : below_level_entries) {
+            for (auto i = puddles.rbegin(); i != puddles.rend(); ++i) {
+                const auto & puddle = *i;
+                if (puddle.height_ + 1 < entry_h) {
+                    break;
+                }
+                auto & entries = puddle.entries_;
+                if (entries.find(below_entry) != entries.end()) {
+                    puddles.erase(std::prev (i.base()));
+                    break;
+                }
+            }
+        }
+    }
     if (is_puddle) {
-        puddle a_puddle{searched_entries};
+        puddle a_puddle{searched_entries, entry_h};
         puddles.push_back(std::move(a_puddle));
     }
 }
@@ -145,16 +167,17 @@ find_one_puddle_and_update(int entry_h, const entry_pos_t& entry_pos,
  */
 std::vector<test_ns::puddle>
 test_ns::matrix::find_puddles() const{
-    std::vector<puddle> puddles;
+    std::vector<puddle> empty_puddles;
     if (rows_.empty()) {
-        return std::move(puddles);
+        return std::move(empty_puddles);
     }
     if (rows_.size() < 3) {
-        return std::move(puddles);
+        return std::move(empty_puddles);
     }
     if (rows_[0].size() < 3) {
-        return std::move(puddles);
+        return std::move(empty_puddles);
     }
+    std::list<puddle> puddles;
     size_t start_row = 1, end_row = rows_.size() - 1;
     size_t start_col = 1, end_col = rows_[0].size() - 1;
 
@@ -209,14 +232,14 @@ test_ns::matrix::find_puddles() const{
             }
         }
     }
-    return puddles;
+    return std::vector<test_ns::puddle>(puddles.begin(), puddles.end());
 }
 
 /*
  *
  */
-test_ns::puddle::puddle(entry_pos_set_t& entry_pos_set)
- : entries_(entry_pos_set.begin(), entry_pos_set.end()) {
+test_ns::puddle::puddle(entry_pos_set_t& entry_pos_set, int height)
+ : entries_(entry_pos_set.begin(), entry_pos_set.end()), height_(height) {
 }
 
 
