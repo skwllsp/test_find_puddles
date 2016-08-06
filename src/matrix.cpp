@@ -16,6 +16,9 @@ test_ns::matrix::matrix(rows_t rows)
  */
 void
 test_ns::matrix::get_heights(test_ns::matrix::heights_t& heights) const {
+    size_t max_per_level = rows_.size() * rows_[0].size();
+    size_t cached_per_level = std::max(5U, (size_t)(max_per_level * 0.001));
+
     size_t curr_row = 0, curr_col = 0;
     for (const auto& row : rows_) {
         curr_col = 0;
@@ -27,7 +30,7 @@ test_ns::matrix::get_heights(test_ns::matrix::heights_t& heights) const {
                 d.some_entries.push_back({curr_row, curr_col});
             } else {
                 ++d.positions;
-                if (d.positions < 3) {
+                if (d.positions <= cached_per_level) {
                     d.some_entries.push_back({curr_row, curr_col});
                 } else {
                     d.some_entries.clear();
@@ -218,6 +221,9 @@ test_ns::matrix::find_puddles() const{
             // here I know exactly places with this height
             for (auto & entry_pos : h_data.some_entries) {
                 int entry_h = h;
+                if (dont_check.find(entry_pos) != dont_check.end()) {
+                    continue;
+                }
                 find_one_puddle_and_update(entry_h, entry_pos,
                         dont_check, puddles, yet_not_found_positions);
                 if (yet_not_found_positions == 0) {
