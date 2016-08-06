@@ -69,7 +69,7 @@ else
 endif
 
 BUILD_DIR = ./build
-TESTS = $(BUILD_DIR)/find_puddles
+TESTS = $(BUILD_DIR)/find_puddles 
 
 ifeq ($(MAKECMDGOALS),test)
 	BUILD_DIR = ./build.test
@@ -91,11 +91,11 @@ GTEST_HEADERS = $(wildcard $(GTEST_DIR)/include/gtest/*.h) \
 
 # House-keeping build targets.
 
-all : $(BUILD_DIR)
+all : $(BUILD_DIR) $(TEST)
 	make $(BUILD_DIR)/find_puddles
 
-test: $(BUILD_DIR) $(TESTS)
-	$(BUILD_DIR)/find_puddles_unittest
+test: $(BUILD_DIR) $(BUILD_DIR)/find_puddles_unittest
+
 
 coverage: $(BUILD_DIR) $(TESTS)
 
@@ -154,24 +154,24 @@ $(BUILD_DIR)/main.o : $(USER_DIR)/main.cpp $(GTEST_HEADERS)
 $(BUILD_DIR)/matrix.o : $(USER_DIR)/matrix.cpp $(GTEST_HEADERS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(EXTRA_CXXFLAGS) -o $@ -c $<
 
-$(BUILD_DIR)/find_puddles_unittest.o : \
-					$(USER_DIR)/find_puddles_unittest.cpp \
+$(BUILD_DIR)/matrix_unittest.o : \
+					$(USER_DIR)/matrix_unittest.cpp \
                     $(USER_DIR)/matrix.h $(GTEST_HEADERS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o $@ -c $<
 
-$(BUILD_DIR)/find_puddles_unittest : $(BUILD_DIR)/feed_handler.o \
-				$(BUILD_DIR)/feed_handler_unittest.o \
+$(BUILD_DIR)/find_puddles_unittest : $(BUILD_DIR)/matrix.o \
+				$(BUILD_DIR)/matrix_unittest.o \
 				$(BUILD_DIR)/gtest_main.a
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $^ -o $@ $(RPATH)
 
 $(BUILD_DIR)/find_puddles : $(BUILD_DIR)/main.o $(BUILD_DIR)/matrix.o
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $^ -o $@ $(RPATH)
 
-$(BUILD_DIR)/feed_handler_coverage : $(BUILD_DIR)/feed_handler.o \
-			$(BUILD_DIR)/feed_handler_unittest.o $(BUILD_DIR)/gtest_main.a
+$(BUILD_DIR)/find_puddles_unittest_coverage : $(BUILD_DIR)/matrix.o \
+			$(BUILD_DIR)/matrix_unittest.o $(BUILD_DIR)/gtest_main.a
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(EXTRA_CXXFLAGS) $(LDFLAGS) $^ -o $@ $(RPATH)
 
-$(BUILD_DIR)/md_replay_coverage : $(BUILD_DIR)/md_replay.o \
-			$(BUILD_DIR)/feed_handler.o
+$(BUILD_DIR)/find_puddles_coverage : $(BUILD_DIR)/main.o \
+			$(BUILD_DIR)/matrix.o
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(EXTRA_CXXFLAGS) $(LDFLAGS) $^ -o $@ $(RPATH)
 

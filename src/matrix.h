@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <set>
+#include <map>
 #include <unordered_set>
 #include <ostream>
 #include <functional>
@@ -44,7 +45,8 @@ using entry_pos_set_t =
  *
  */
 struct puddle {
-    entry_pos_set_t entries_;
+    puddle(entry_pos_set_t&);
+    std::set<entry_pos_t> entries_;
 };
 std::ostream& operator<<(std::ostream&, const puddle&);
 
@@ -58,11 +60,20 @@ class matrix {
 
  private:
     rows_t rows_;
-    using heights_t = std::set<int>;
-    heights_t get_heights() const;
+    using entry_positions_t = std::vector<entry_pos_t>;
+    struct height_data_t {
+        size_t positions;
+        entry_positions_t some_entries;
+    };
+    using heights_t = std::map<int, height_data_t>;
+    void get_heights(heights_t&) const;
     int get_height(const entry_pos_t&) const;
-    bool search_puddle(const entry_pos_t&,
+    bool find_one_puddle(int entry_h, const entry_pos_t&,
             entry_pos_set_t& searched_entries) const;
+    void find_one_puddle_and_update(int entry_h, const entry_pos_t&,
+            entry_pos_set_t& dont_check,
+            std::vector<puddle>& puddles,
+            size_t& yet_not_found_positions) const;
 };
 
 }  // namespace test_ns
