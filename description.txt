@@ -82,9 +82,9 @@ O(100*N*M).
 
 $ ./build.test/find_puddles_unittest.exe
 Running main() from gtest_main.cc
-[==========] Running 40 tests from 1 test case.
+[==========] Running 41 tests from 1 test case.
 [----------] Global test environment set-up.
-[----------] 40 tests from Matrix
+[----------] 41 tests from Matrix
 [ RUN      ] Matrix.Zero1
 [       OK ] Matrix.Zero1 (0 ms)
 [ RUN      ] Matrix.One1
@@ -152,7 +152,7 @@ Running main() from gtest_main.cc
 [ RUN      ] Matrix.Four13
 [       OK ] Matrix.Four13 (0 ms)
 [ RUN      ] Matrix.Four14
-[       OK ] Matrix.Four14 (0 ms)
+[       OK ] Matrix.Four14 (16 ms)
 [ RUN      ] Matrix.Five1
 [       OK ] Matrix.Five1 (0 ms)
 [ RUN      ] Matrix.Five2
@@ -165,11 +165,13 @@ Running main() from gtest_main.cc
 [       OK ] Matrix.Five5 (0 ms)
 [ RUN      ] Matrix.Five6
 [       OK ] Matrix.Five6 (0 ms)
-[----------] 40 tests from Matrix (15 ms total)
+[ RUN      ] Matrix.Five7
+[       OK ] Matrix.Five7 (0 ms)
+[----------] 41 tests from Matrix (16 ms total)
 
 [----------] Global test environment tear-down
-[==========] 40 tests from 1 test case ran. (15 ms total)
-[  PASSED  ] 40 tests.
+[==========] 41 tests from 1 test case ran. (16 ms total)
+[  PASSED  ] 41 tests.
 
 
         Пример вывода программы
