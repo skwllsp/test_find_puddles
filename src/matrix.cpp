@@ -217,9 +217,6 @@ test_ns::matrix::find_puddles() const{
         } else {
             // here I know exactly places with this height
             for (auto & entry_pos : h_data.some_entries) {
-                if (dont_check.find(entry_pos) != dont_check.end()) {
-                    continue;
-                }
                 int entry_h = h;
                 find_one_puddle_and_update(entry_h, entry_pos,
                         dont_check, puddles, yet_not_found_positions);
