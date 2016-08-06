@@ -151,19 +151,27 @@ RPATH = -Wl,-rpath,$(shell dirname $(shell which $(CXX)))/../lib64
 $(BUILD_DIR)/main.o : $(USER_DIR)/main.cpp $(GTEST_HEADERS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(EXTRA_CXXFLAGS) -o $@ -c $<
 
-$(BUILD_DIR)/feed_handler_unittest.o : $(USER_DIR)/feed_handler_unittest.cpp \
-                     $(USER_DIR)/feed_handler.h $(GTEST_HEADERS)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o $@ -c $(USER_DIR)/feed_handler_unittest.cpp
+$(BUILD_DIR)/matrix.o : $(USER_DIR)/matrix.cpp $(GTEST_HEADERS)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(EXTRA_CXXFLAGS) -o $@ -c $<
 
-$(BUILD_DIR)/find_puddles_unittest : $(BUILD_DIR)/feed_handler.o $(BUILD_DIR)/feed_handler_unittest.o $(BUILD_DIR)/gtest_main.a
+$(BUILD_DIR)/find_puddles_unittest.o : \
+					$(USER_DIR)/find_puddles_unittest.cpp \
+                    $(USER_DIR)/matrix.h $(GTEST_HEADERS)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o $@ -c $<
+
+$(BUILD_DIR)/find_puddles_unittest : $(BUILD_DIR)/feed_handler.o \
+				$(BUILD_DIR)/feed_handler_unittest.o \
+				$(BUILD_DIR)/gtest_main.a
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $^ -o $@ $(RPATH)
 
-$(BUILD_DIR)/find_puddles : $(BUILD_DIR)/main.o
+$(BUILD_DIR)/find_puddles : $(BUILD_DIR)/main.o $(BUILD_DIR)/matrix.o
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $^ -o $@ $(RPATH)
 
-$(BUILD_DIR)/feed_handler_coverage : $(BUILD_DIR)/feed_handler.o $(BUILD_DIR)/feed_handler_unittest.o $(BUILD_DIR)/gtest_main.a
+$(BUILD_DIR)/feed_handler_coverage : $(BUILD_DIR)/feed_handler.o \
+			$(BUILD_DIR)/feed_handler_unittest.o $(BUILD_DIR)/gtest_main.a
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(EXTRA_CXXFLAGS) $(LDFLAGS) $^ -o $@ $(RPATH)
 
-$(BUILD_DIR)/md_replay_coverage : $(BUILD_DIR)/md_replay.o $(BUILD_DIR)/feed_handler.o
+$(BUILD_DIR)/md_replay_coverage : $(BUILD_DIR)/md_replay.o \
+			$(BUILD_DIR)/feed_handler.o
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(EXTRA_CXXFLAGS) $(LDFLAGS) $^ -o $@ $(RPATH)
 
