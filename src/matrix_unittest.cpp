@@ -310,3 +310,11 @@ TEST(Matrix, Four11) {
     auto puddles = a_matrix.find_puddles();
     ASSERT_EQ (puddles.size(), 1);
 }
+
+TEST(Matrix, Five1) {
+    test_ns::matrix a_matrix(test_ns::rows_t{
+        {0,0,0,0,0}
+    });
+    auto puddles = a_matrix.find_puddles();
+    ASSERT_EQ (puddles.size(), 1);
+}
