@@ -145,9 +145,6 @@ find_one_puddle_and_update(int entry_h, const entry_pos_t& entry_pos,
         for (auto const & below_entry : below_level_entries) {
             for (auto i = puddles.rbegin(); i != puddles.rend(); ++i) {
                 const auto & puddle = *i;
-                if (puddle.height_ + 1 < entry_h) {
-                    break;
-                }
                 auto & entries = puddle.entries_;
                 if (entries.find(below_entry) != entries.end()) {
                     puddles.erase(std::prev (i.base()));
