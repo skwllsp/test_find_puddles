@@ -93,6 +93,7 @@ TEST(Matrix, Three3) {
     auto puddles = a_matrix.find_puddles();
     ASSERT_EQ (puddles.size(), 1);
 }
+
 TEST(Matrix, Three4) {
     test_ns::matrix a_matrix(test_ns::rows_t{
         {1,1,1},
@@ -102,6 +103,7 @@ TEST(Matrix, Three4) {
     auto puddles = a_matrix.find_puddles();
     ASSERT_EQ (puddles.size(), 0);
 }
+
 TEST(Matrix, Three5) {
     test_ns::matrix a_matrix(test_ns::rows_t{
         {1,1,1},
@@ -111,6 +113,7 @@ TEST(Matrix, Three5) {
     auto puddles = a_matrix.find_puddles();
     ASSERT_EQ (puddles.size(), 1);
 }
+
 TEST(Matrix, Three6) {
     test_ns::matrix a_matrix(test_ns::rows_t{
         {1,1,1},
@@ -120,6 +123,7 @@ TEST(Matrix, Three6) {
     auto puddles = a_matrix.find_puddles();
     ASSERT_EQ (puddles.size(), 0);
 }
+
 TEST(Matrix, Three7) {
     test_ns::matrix a_matrix(test_ns::rows_t{
         {1,1,1},
@@ -129,6 +133,7 @@ TEST(Matrix, Three7) {
     auto puddles = a_matrix.find_puddles();
     ASSERT_EQ (puddles.size(), 1);
 }
+
 TEST(Matrix, Three8) {
     test_ns::matrix a_matrix(test_ns::rows_t{
         {1,1,1},
@@ -138,6 +143,7 @@ TEST(Matrix, Three8) {
     auto puddles = a_matrix.find_puddles();
     ASSERT_EQ (puddles.size(), 0);
 }
+
 TEST(Matrix, Three9) {
     test_ns::matrix a_matrix(test_ns::rows_t{
         {0,1,1},
@@ -147,6 +153,7 @@ TEST(Matrix, Three9) {
     auto puddles = a_matrix.find_puddles();
     ASSERT_EQ (puddles.size(), 1);
 }
+
 TEST(Matrix, Three10) {
     test_ns::matrix a_matrix(test_ns::rows_t{
         {1,0,1},
@@ -156,6 +163,7 @@ TEST(Matrix, Three10) {
     auto puddles = a_matrix.find_puddles();
     ASSERT_EQ (puddles.size(), 0);
 }
+
 TEST(Matrix, Three11) {
     test_ns::matrix a_matrix(test_ns::rows_t{
         {2,2,2},
@@ -165,6 +173,7 @@ TEST(Matrix, Three11) {
     auto puddles = a_matrix.find_puddles();
     ASSERT_EQ (puddles.size(), 1);
 }
+
 TEST(Matrix, Three12) {
     test_ns::matrix a_matrix(test_ns::rows_t{
         {2,2,2},
@@ -174,6 +183,7 @@ TEST(Matrix, Three12) {
     auto puddles = a_matrix.find_puddles();
     ASSERT_EQ (puddles.size(), 1);
 }
+
 TEST(Matrix, Four1) {
     test_ns::matrix a_matrix(test_ns::rows_t{
         {2,2,2,2},
@@ -183,6 +193,7 @@ TEST(Matrix, Four1) {
     auto puddles = a_matrix.find_puddles();
     ASSERT_EQ (puddles.size(), 0);
 }
+
 TEST(Matrix, Four2) {
     test_ns::matrix a_matrix(test_ns::rows_t{
         {2,2,2,2},
@@ -192,6 +203,7 @@ TEST(Matrix, Four2) {
     auto puddles = a_matrix.find_puddles();
     ASSERT_EQ (puddles.size(), 1);
 }
+
 TEST(Matrix, Four3) {
     test_ns::matrix a_matrix(test_ns::rows_t{
         {2,2,2,2},
@@ -201,6 +213,7 @@ TEST(Matrix, Four3) {
     auto puddles = a_matrix.find_puddles();
     ASSERT_EQ (puddles.size(), 0);
 }
+
 TEST(Matrix, Four4) {
     test_ns::matrix a_matrix(test_ns::rows_t{
         {2,2,2,2},
@@ -211,6 +224,7 @@ TEST(Matrix, Four4) {
     auto puddles = a_matrix.find_puddles();
     ASSERT_EQ (puddles.size(), 1);
 }
+
 TEST(Matrix, Four5) {
     test_ns::matrix a_matrix(test_ns::rows_t{
         {2,2,2,2},
@@ -221,6 +235,7 @@ TEST(Matrix, Four5) {
     auto puddles = a_matrix.find_puddles();
     ASSERT_EQ (puddles.size(), 2);
 }
+
 TEST(Matrix, Four6) {
     test_ns::matrix a_matrix(test_ns::rows_t{
         {2,2,2,2},
@@ -231,10 +246,21 @@ TEST(Matrix, Four6) {
     auto puddles = a_matrix.find_puddles();
     ASSERT_EQ (puddles.size(), 2);
 }
+
 TEST(Matrix, Four7) {
     test_ns::matrix a_matrix(test_ns::rows_t{
         {2,2,2,2},
         {3,2,1,3},
+        {2,1,0,2},
+        {2,2,2,2}
+    });
+    auto puddles = a_matrix.find_puddles();
+    ASSERT_EQ (puddles.size(), 1);
+}
+TEST(Matrix, Four8) {
+    test_ns::matrix a_matrix(test_ns::rows_t{
+        {2,2,2,2},
+        {3,0,1,3},
         {2,1,0,2},
         {2,2,2,2}
     });
