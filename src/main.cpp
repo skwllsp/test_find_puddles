@@ -15,7 +15,6 @@ int main() {
         size_t first_row_size = 0;
         bool first_row_set = false;
         for (std::string line; std::getline(std::cin, line); ) {
-            std::cout << line << '\n';
             std::istringstream line_stream(line);
             int value;
             test_ns::row_t a_row;
@@ -23,7 +22,6 @@ int main() {
                 a_row.reserve(first_row_size);
             }
             while(line_stream >> value) {
-                std::cout << value << '\n';
                 a_row.push_back(value);
             }
             if (!first_row_set) {

@@ -1,0 +1,153 @@
+        Алгоритм поиска всех луж в матрице
+
+Алгоритм выполняет следующую последовательность шагов:
+
+1. Составляется упорядоченный массив высот элементов матрицы.
+
+1.1 Для каждого уровня запоминается высота и число элементов с такой в
+ысотой на этом уровне. В дальнейшем это используется для остановки поиска луж 
+на определенной высоте, когда точно ясно, что все возможные лужи найдены.
+
+1.2 Плюс если элементов с такой высотой на данном уровне не больше N 
+(в алгоритме N равно 3), то запоминаются отдельные элементы матрицы с данным 
+уровнем. Это делается, для того, чтобы быстро находить возможные лужи если 
+матрица большая, а луж мало.
+   
+2. Алгоритм выполняет в цикле обход всех высот, на которых возможно образование 
+луж (эти данные получены на шаге 1).
+  
+2.1 Если есть спискок высот, с именно такой высотой (это данные из 
+оптимизации 1.2), то обход идет только по ним и алгоритм для каждой такой точки
+выполняет шаг 2.4.
+  
+2.2 Если записей с такой высотой слишком много, то обходятся все точки на этой
+плоскости.
+
+2.2.1 Если точка имеет высоту больше, чем та, которая сейчас рассматривается,
+то такая точка пропускается. 
+
+2.2.2 Если уже было ранее найдено, что эта точка находится в луже или наоборот,
+точно не находится в луже, то точка тоже пропускается
+
+2.2.4 Для точек которые не требуется пропускать алгоритм выполняет шаг 2.4 
+
+2.4 Когда выбрана точка для проверки возможна лужа или нет в ней, то алгоритм
+выполняет из этой точки поиск в ширину всех записей с такой же высотой. 
+
+2.4.1 Алгоритм предполагает, что вода не просачивается через стыковку двух 
+элементов по ребру.
+
+2.4.2 Если в ходе поиска в ширину алгоритм выйдет на ребро матрицы, то 
+лужа невозможна.
+
+2.4.3 Если выхода на ребро матрицы не произошло, то найдена лужа. Если в ходе 
+поиска данной лужи были найдены соседние точки с меньшей высотой, то это значит, 
+что данную лужу надо объеденить с более глубой лужей, которая была найдена ранее.
+Это делается на шаге 2.5
+
+2.5 Если найденая лужа включает другие лужи, то такие лужи сливаются в одну.
+
+3. После обхода всех уровней алгоритм возвращает массив найденых луж
+
+
+        Сложность алгоритма
+ 
+ time complexity
+
+ space complexity
+ 
+ 
+
+ 
+        Отчет по тестированию
+
+$ ./build.test/find_puddles_unittest.exe
+Running main() from gtest_main.cc
+[==========] Running 40 tests from 1 test case.
+[----------] Global test environment set-up.
+[----------] 40 tests from Matrix
+[ RUN      ] Matrix.Zero1
+[       OK ] Matrix.Zero1 (0 ms)
+[ RUN      ] Matrix.One1
+[       OK ] Matrix.One1 (0 ms)
+[ RUN      ] Matrix.One2
+[       OK ] Matrix.One2 (0 ms)
+[ RUN      ] Matrix.Two1
+[       OK ] Matrix.Two1 (0 ms)
+[ RUN      ] Matrix.Two2
+[       OK ] Matrix.Two2 (0 ms)
+[ RUN      ] Matrix.Two3
+[       OK ] Matrix.Two3 (0 ms)
+[ RUN      ] Matrix.Two4
+[       OK ] Matrix.Two4 (0 ms)
+[ RUN      ] Matrix.Two5
+[       OK ] Matrix.Two5 (0 ms)
+[ RUN      ] Matrix.Three1
+[       OK ] Matrix.Three1 (0 ms)
+[ RUN      ] Matrix.Three2
+[       OK ] Matrix.Three2 (0 ms)
+[ RUN      ] Matrix.Three3
+[       OK ] Matrix.Three3 (0 ms)
+[ RUN      ] Matrix.Three4
+[       OK ] Matrix.Three4 (0 ms)
+[ RUN      ] Matrix.Three5
+[       OK ] Matrix.Three5 (0 ms)
+[ RUN      ] Matrix.Three6
+[       OK ] Matrix.Three6 (0 ms)
+[ RUN      ] Matrix.Three7
+[       OK ] Matrix.Three7 (0 ms)
+[ RUN      ] Matrix.Three8
+[       OK ] Matrix.Three8 (0 ms)
+[ RUN      ] Matrix.Three9
+[       OK ] Matrix.Three9 (0 ms)
+[ RUN      ] Matrix.Three10
+[       OK ] Matrix.Three10 (0 ms)
+[ RUN      ] Matrix.Three11
+[       OK ] Matrix.Three11 (0 ms)
+[ RUN      ] Matrix.Three12
+[       OK ] Matrix.Three12 (0 ms)
+[ RUN      ] Matrix.Four1
+[       OK ] Matrix.Four1 (0 ms)
+[ RUN      ] Matrix.Four2
+[       OK ] Matrix.Four2 (0 ms)
+[ RUN      ] Matrix.Four3
+[       OK ] Matrix.Four3 (0 ms)
+[ RUN      ] Matrix.Four4
+[       OK ] Matrix.Four4 (0 ms)
+[ RUN      ] Matrix.Four5
+[       OK ] Matrix.Four5 (0 ms)
+[ RUN      ] Matrix.Four6
+[       OK ] Matrix.Four6 (0 ms)
+[ RUN      ] Matrix.Four7
+[       OK ] Matrix.Four7 (0 ms)
+[ RUN      ] Matrix.Four8
+[       OK ] Matrix.Four8 (0 ms)
+[ RUN      ] Matrix.Four9
+[       OK ] Matrix.Four9 (0 ms)
+[ RUN      ] Matrix.Four10
+[       OK ] Matrix.Four10 (0 ms)
+[ RUN      ] Matrix.Four11
+[       OK ] Matrix.Four11 (0 ms)
+[ RUN      ] Matrix.Four12
+[       OK ] Matrix.Four12 (0 ms)
+[ RUN      ] Matrix.Four13
+[       OK ] Matrix.Four13 (0 ms)
+[ RUN      ] Matrix.Four14
+[       OK ] Matrix.Four14 (0 ms)
+[ RUN      ] Matrix.Five1
+[       OK ] Matrix.Five1 (0 ms)
+[ RUN      ] Matrix.Five2
+[       OK ] Matrix.Five2 (0 ms)
+[ RUN      ] Matrix.Five3
+[       OK ] Matrix.Five3 (0 ms)
+[ RUN      ] Matrix.Five4
+[       OK ] Matrix.Five4 (0 ms)
+[ RUN      ] Matrix.Five5
+[       OK ] Matrix.Five5 (0 ms)
+[ RUN      ] Matrix.Five6
+[       OK ] Matrix.Five6 (0 ms)
+[----------] 40 tests from Matrix (15 ms total)
+
+[----------] Global test environment tear-down
+[==========] 40 tests from 1 test case ran. (15 ms total)
+[  PASSED  ] 40 tests.

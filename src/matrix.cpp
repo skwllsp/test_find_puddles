@@ -241,5 +241,16 @@ test_ns::puddle::puddle(entry_pos_set_t& entry_pos_set, int height)
  *
  */
 std::ostream& test_ns::operator<<(std::ostream& os, const test_ns::puddle& p) {
+    os << "height: " << p.height_ << ", points: [";
+    bool print_comma = false;
+    for (auto const & e : p.entries_) {
+        if (print_comma) {
+            os << ", ";
+        } else {
+            print_comma = true;
+        }
+        os << '{'<< e.row << ',' << e.col << '}';
+    }
+    os << ']';
     return os;
 }
