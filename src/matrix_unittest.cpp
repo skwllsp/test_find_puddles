@@ -316,5 +316,13 @@ TEST(Matrix, Five1) {
         {0,0,0,0,0}
     });
     auto puddles = a_matrix.find_puddles();
-    ASSERT_EQ (puddles.size(), 1);
+    ASSERT_EQ (puddles.size(), 0);
+}
+TEST(Matrix, Five2) {
+    test_ns::matrix a_matrix(test_ns::rows_t{
+        {0,0,0,0,0},
+        {0,0,1,0,0}
+    });
+    auto puddles = a_matrix.find_puddles();
+    ASSERT_EQ (puddles.size(), 0);
 }
