@@ -257,6 +257,7 @@ TEST(Matrix, Four7) {
     auto puddles = a_matrix.find_puddles();
     ASSERT_EQ (puddles.size(), 1);
 }
+
 TEST(Matrix, Four8) {
     test_ns::matrix a_matrix(test_ns::rows_t{
         {2,2,2,2},
@@ -266,4 +267,30 @@ TEST(Matrix, Four8) {
     });
     auto puddles = a_matrix.find_puddles();
     ASSERT_EQ (puddles.size(), 1);
+}
+TEST(Matrix, Four9) {
+    test_ns::matrix a_matrix(test_ns::rows_t{
+        {2,2,2,2},
+        {3,0,1,3},
+        {2,1,0,2},
+        {2,0,1,2},
+        {2,2,2,2}
+    });
+    auto puddles = a_matrix.find_puddles();
+    ASSERT_EQ (puddles.size(), 1);
+}
+TEST(Matrix, Four10) {
+    test_ns::matrix a_matrix(test_ns::rows_t{
+        {2,2,2,2},
+        {3,1,1,3},
+        {2,2,2,2},
+        {2,0,0,2},
+        {2,2,2,2},
+        {2,1,2,2},
+        {2,2,2,2},
+        {2,2,1,2},
+        {2,2,2,2}
+    });
+    auto puddles = a_matrix.find_puddles();
+    ASSERT_EQ (puddles.size(), 4);
 }
