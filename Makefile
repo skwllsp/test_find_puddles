@@ -76,6 +76,11 @@ ifeq ($(MAKECMDGOALS),test)
 	TESTS = $(BUILD_DIR)/find_puddles_unittest
 endif
 
+ifeq ($(MAKECMDGOALS),run_test)
+	BUILD_DIR = ./build.test
+	TESTS = $(BUILD_DIR)/find_puddles_unittest
+endif
+
 ifeq ($(MAKECMDGOALS),coverage)
 	BUILD_DIR = ./build.coverage
 	EXTRA_CXXFLAGS += -fprofile-arcs -ftest-coverage
@@ -96,6 +101,8 @@ all : $(BUILD_DIR) $(TEST)
 
 test: $(BUILD_DIR) $(BUILD_DIR)/find_puddles_unittest
 
+run_test: test
+	 $(BUILD_DIR)/find_puddles_unittest
 
 coverage: $(BUILD_DIR) $(TESTS)
 
