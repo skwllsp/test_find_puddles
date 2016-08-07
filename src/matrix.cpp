@@ -17,7 +17,7 @@ test_ns::matrix::matrix(rows_t rows)
 void
 test_ns::matrix::get_heights(test_ns::matrix::heights_t& heights) const {
     size_t max_per_level = rows_.size() * rows_[0].size();
-    size_t cached_per_level = std::max(5U, (size_t)(max_per_level * 0.01));
+    size_t cached_per_level = std::max(5U, (unsigned)(max_per_level * 0.01));
 
     size_t curr_row = 0, curr_col = 0;
     for (const auto& row : rows_) {
