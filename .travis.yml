@@ -17,7 +17,7 @@ addons:
     - lcov
 
 script:
-  - make & make test & make coverage
+  - make & make test & ./build.test/find_puddles_unittest.exe & make coverage
 
 after_success:
   # Copying Coveralls data to a separate folder
