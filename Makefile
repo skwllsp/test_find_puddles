@@ -89,6 +89,18 @@ ifeq ($(MAKECMDGOALS),coverage)
 	TESTS = $(BUILD_DIR)/find_puddles_coverage $(BUILD_DIR)/find_puddles_unittest_coverage
 endif
 
+ifeq ($(MAKECMDGOALS),run_coverage)
+	BUILD_DIR = ./build.coverage
+	EXTRA_CXXFLAGS += -fprofile-arcs -ftest-coverage
+	TESTS = $(BUILD_DIR)/find_puddles_coverage $(BUILD_DIR)/find_puddles_unittest_coverage
+endif
+
+ifeq ($(MAKECMDGOALS),coverage_report)
+	BUILD_DIR = ./build.coverage
+	EXTRA_CXXFLAGS += -fprofile-arcs -ftest-coverage
+	TESTS = $(BUILD_DIR)/find_puddles_coverage $(BUILD_DIR)/find_puddles_unittest_coverage
+endif
+
 TRAVIS_BUILD_DIR=$(PWD)
 
 # All Google Test headers.  Usually you shouldn't change this
@@ -108,8 +120,10 @@ run_test: test
 
 coverage: $(BUILD_DIR) $(TESTS)
 
-coverage-report:
-	make coverage
+run_coverage: coverage
+	 $(BUILD_DIR)/find_puddles_unittest_coverage
+
+coverage_report: coverage
 	./build.coverage/find_puddles_unittest_coverage
 	mkdir -p $(TRAVIS_BUILD_DIR)/coverals
 	find . -name "*.gcda" -exec cp "{}" $(TRAVIS_BUILD_DIR)/coverals/ \;
