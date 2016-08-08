@@ -32,13 +32,10 @@ after_success:
   - lcov --remove $TRAVIS_BUILD_DIR/coverals/coverage.info "/usr*" -o $TRAVIS_BUILD_DIR/coverals/coverage.info
 
   # Sending data to Coveralls
-  - cd $TRAVIS_BUILD_DIR
-  #- coveralls-lcov coverals/coverage.info
   - >
-    if [ "$CXX" = "g++" ]; then
       # Report code coverage to coveralls.io
       lcoveralls --retry-count 5 $TRAVIS_BUILD_DIR/coverals/coverage.info
       # Report code coverage to codecov.io
       curl https://codecov.io/bash > /tmp/codecov.sh;
       bash /tmp/codecov.sh -f $TRAVIS_BUILD_DIR/test/coverage.info
-    fi  
+
