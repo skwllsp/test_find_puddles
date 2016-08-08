@@ -35,5 +35,6 @@ after_success:
   # Report code coverage to coveralls.io
   # - lcoveralls --retry-count 5 $TRAVIS_BUILD_DIR/coverals/coverage.info
   # Report code coverage to codecov.io
-  - bash <(curl https://codecov.io/bash) -f $TRAVIS_BUILD_DIR/test/coverage.info
+  - bash <(curl https://codecov.io/bash)
+
 
