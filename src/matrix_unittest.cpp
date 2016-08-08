@@ -64,6 +64,17 @@ TEST(Matrix, Two5) {
     ASSERT_EQ (puddles.size(), 0);
 }
 
+TEST(Matrix, Two6) {
+    test_ns::matrix a_matrix(test_ns::rows_t{
+        {1,2},
+        {3,4},
+        {5,6},
+        {7,8}
+    });
+    auto puddles = a_matrix.find_puddles();
+    ASSERT_EQ (puddles.size(), 0);
+}
+
 TEST(Matrix, Three1) {
     test_ns::matrix a_matrix(test_ns::rows_t{
         {0,0,0},
