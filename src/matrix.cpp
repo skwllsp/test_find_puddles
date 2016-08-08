@@ -191,8 +191,8 @@ test_ns::matrix::find_puddles() const{
         return std::move(empty_puddles);
     }
     std::list<puddle> puddles;
-    size_t start_row = 0, end_row = rows_.size() - 1;
-    size_t start_col = 0, end_col = rows_[0].size() - 1;
+    size_t start_row = 0, end_row = rows_.size();
+    size_t start_col = 0, end_col = rows_[0].size();
 
     entry_pos_set_t puddle_pos;
     entry_pos_set_t leaks_pos;
