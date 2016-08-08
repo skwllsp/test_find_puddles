@@ -33,5 +33,6 @@ after_success:
   - lcov --directory $TRAVIS_BUILD_DIR/coverals --base-directory ./ --capture --output-file $TRAVIS_BUILD_DIR/coverals/coverage.info
   - lcov --remove $TRAVIS_BUILD_DIR/coverals/coverage.info "/usr*" -o $TRAVIS_BUILD_DIR/coverals/coverage.info
 
+  - cd $TRAVIS_BUILD_DIR
   - coveralls --exclude-pattern ".*googletest.*" --exclude-pattern ".*_unittest.*" --exclude lib --exclude tests --gcov-options '\-lp'
 
