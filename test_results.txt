@@ -1,0 +1,37 @@
+1. Матрица 100 на 100
+
+$ time ./find_puddles < ../test100.txt 
+
+real	0m0.031s
+user	0m0.026s
+sys	0m0.003s
+
+2. Матрица 500 на 500
+
+$ time ./find_puddles < ../test500.txt 
+
+real	0m2.421s
+user	0m2.365s
+sys	0m0.053s
+
+
+3. Матрица 1000 на 1000
+
+$ time ./find_puddles < ../test1000.txt 
+
+real	0m19.636s
+user	0m19.421s
+sys	0m0.210s
+
+
+4. Матрица 1000 на 5000
+
+
+$ time ./find_puddles < ../test1000_5000.txt 
+
+real	1m40.648s
+user	1m39.781s
+sys	0m0.836s
+
+
+
