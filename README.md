@@ -12,4 +12,6 @@
 Пожалуйста, вместе с программой пришлите словесное описание реализованного решения, 
 оценку сложности работы алгоритма и набор тестов, подтверждающих корректность работы программы.
 
+[Мой ответ](https://github.com/skwllsp/test_find_puddles/blob/master/description.txt)
+
 ![alt tag](https://github.com/skwllsp/test_find_puddles/blob/master/unnamed.png)
