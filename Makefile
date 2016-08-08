@@ -62,7 +62,7 @@ CPPFLAGS += -isystem $(GTEST_DIR)/include
 
 # Flags passed to the C++ compiler.
 ifeq "$(PLATFORM)" "linux"
-    CXXFLAGS += -std=c++11 -g -Wall -Wextra -pthread
+    CXXFLAGS += -std=c++11 -g -Wall -Wextra -pthread -fno-omit-frame-pointer
     LDFLAGS += -lpthread
 else
     CXXFLAGS += -D_WIN32_WINNT=0x0501 -std=gnu++0x -g -Wall -Wextra
@@ -70,6 +70,8 @@ endif
 
 BUILD_DIR = ./build
 TESTS = $(BUILD_DIR)/find_puddles 
+
+# CXXFLAGS += -O2
 
 ifeq ($(MAKECMDGOALS),test)
 	BUILD_DIR = ./build.test

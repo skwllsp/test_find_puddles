@@ -72,10 +72,11 @@ class matrix {
     void get_heights(heights_t&) const;
     int get_height(const entry_pos_t&) const;
     bool find_one_puddle(int entry_h, const entry_pos_t&,
+            const entry_pos_set_t& leaks_pos,
             entry_pos_set_t& searched_entries,
             entry_pos_set_t& below_level_entries) const;
     void find_one_puddle_and_update(int entry_h, const entry_pos_t&,
-            entry_pos_set_t& dont_check,
+            entry_pos_set_t& puddle_pos, entry_pos_set_t& leaks_pos,
             std::list<puddle>& puddles,
             size_t& yet_not_found_positions) const;
 };
