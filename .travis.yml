@@ -3,11 +3,13 @@ language: cpp
 compiler:
   - gcc
 
+before_install:
+  - pip install --user cpp-coveralls
+  - pip install --user pyyaml   
+  
 install:
 - if [ "$CXX" = "g++" ]; then export CXX="g++-4.8" CC="gcc-4.8"; fi
 - if [ "$CXX" = "g++" ]; then sudo apt-get install -y lcov; fi
-- gem install lcoveralls
-- gem install coveralls-lcov
   
 addons:
   apt:
@@ -31,10 +33,5 @@ after_success:
   - lcov --directory $TRAVIS_BUILD_DIR/coverals --base-directory ./ --capture --output-file $TRAVIS_BUILD_DIR/coverals/coverage.info
   - lcov --remove $TRAVIS_BUILD_DIR/coverals/coverage.info "/usr*" -o $TRAVIS_BUILD_DIR/coverals/coverage.info
 
-  # Sending data to Coveralls
-  # Report code coverage to coveralls.io
-  # - lcoveralls --retry-count 5 $TRAVIS_BUILD_DIR/coverals/coverage.info
-  # Report code coverage to codecov.io
-  - bash <(curl https://codecov.io/bash)
-
+  - coveralls --exclude-pattern ".*googletest.*" --exclude-pattern ".*_unittest.*" --exclude lib --exclude tests --gcov-options '\-lp'
 
