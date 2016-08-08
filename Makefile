@@ -62,10 +62,10 @@ CPPFLAGS += -isystem $(GTEST_DIR)/include
 
 # Flags passed to the C++ compiler.
 ifeq "$(PLATFORM)" "linux"
-    CXXFLAGS += -std=c++11 -g -Wall -Wextra -pthread -fno-omit-frame-pointer
+    CXXFLAGS += -std=c++11 -g -Wall -Wextra -pthread -fno-omit-frame-pointer -O3
     LDFLAGS += -lpthread
 else
-    CXXFLAGS += -D_WIN32_WINNT=0x0501 -std=gnu++0x -g -Wall -Wextra
+    CXXFLAGS += -D_WIN32_WINNT=0x0501 -std=gnu++0x -g -Wall -Wextra -O3
 endif
 
 BUILD_DIR = ./build
@@ -74,28 +74,33 @@ TESTS = $(BUILD_DIR)/find_puddles
 #CXXFLAGS += -O3
 
 ifeq ($(MAKECMDGOALS),test)
+    CXXFLAGS += -O0
 	BUILD_DIR = ./build.test
 	TESTS = $(BUILD_DIR)/find_puddles_unittest
 endif
 
 ifeq ($(MAKECMDGOALS),run_test)
+    CXXFLAGS += -O0
 	BUILD_DIR = ./build.test
 	TESTS = $(BUILD_DIR)/find_puddles_unittest
 endif
 
 ifeq ($(MAKECMDGOALS),coverage)
+    CXXFLAGS += -O0
 	BUILD_DIR = ./build.coverage
 	EXTRA_CXXFLAGS += -fprofile-arcs -ftest-coverage
 	TESTS = $(BUILD_DIR)/find_puddles_coverage $(BUILD_DIR)/find_puddles_unittest_coverage
 endif
 
 ifeq ($(MAKECMDGOALS),run_coverage)
+    CXXFLAGS += -O0
 	BUILD_DIR = ./build.coverage
 	EXTRA_CXXFLAGS += -fprofile-arcs -ftest-coverage
 	TESTS = $(BUILD_DIR)/find_puddles_coverage $(BUILD_DIR)/find_puddles_unittest_coverage
 endif
 
 ifeq ($(MAKECMDGOALS),coverage_report)
+    CXXFLAGS += -O0
 	BUILD_DIR = ./build.coverage
 	EXTRA_CXXFLAGS += -fprofile-arcs -ftest-coverage
 	TESTS = $(BUILD_DIR)/find_puddles_coverage $(BUILD_DIR)/find_puddles_unittest_coverage
