@@ -5,7 +5,10 @@ compiler:
 
 install:
 - if [ "$CXX" = "g++" ]; then export CXX="g++-4.8" CC="gcc-4.8"; fi
-
+- if [ "$CXX" = "g++" ]; then sudo apt-get install -y lcov; fi
+- gem install lcoveralls
+- gem install coveralls-lcov
+  
 addons:
   apt:
     sources:
@@ -30,6 +33,12 @@ after_success:
 
   # Sending data to Coveralls
   - cd $TRAVIS_BUILD_DIR
-  - gem install coveralls-lcov
-  - coveralls-lcov coverals/coverage.info
-  
+  #- coveralls-lcov coverals/coverage.info
+  - >
+    if [ "$CXX" = "g++" ]; then
+      # Report code coverage to coveralls.io
+      lcoveralls --retry-count 5 $TRAVIS_BUILD_DIR/coverals/coverage.info
+      # Report code coverage to codecov.io
+      curl https://codecov.io/bash > /tmp/codecov.sh;
+      bash /tmp/codecov.sh -f $TRAVIS_BUILD_DIR/test/coverage.info
+    fi  
