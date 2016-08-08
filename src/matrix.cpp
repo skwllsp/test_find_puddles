@@ -164,14 +164,12 @@ find_one_puddle_and_update(int entry_h, const entry_pos_t& entry_pos,
                 }
             }
         }
+        puddle a_puddle{searched_entries, entry_h};
+        puddles.push_back(std::move(a_puddle));
     } else {
         for (const auto & e : searched_entries) {
             leaks_pos.insert(e);
         }
-    }
-    if (is_puddle) {
-        puddle a_puddle{searched_entries, entry_h};
-        puddles.push_back(std::move(a_puddle));
     }
 }
 
@@ -190,6 +188,7 @@ test_ns::matrix::find_puddles() const{
     if (rows_[0].size() < 3) {
         return std::move(empty_puddles);
     }
+
     std::list<puddle> puddles;
     size_t start_row = 0, end_row = rows_.size();
     size_t start_col = 0, end_col = rows_[0].size();
@@ -211,8 +210,8 @@ test_ns::matrix::find_puddles() const{
         height_data_t & h_data = h_data_pair.second;
         size_t yet_not_found_positions = h_data.positions;
         if (h_data.positions != h_data.some_entries.size()) {
-            for (size_t c = start_col; c < end_col; ++c) {
-                for (size_t r = start_row; r < end_row; ++r) {
+            for (size_t r = start_row; r < end_row; ++r) {
+                for (size_t c = start_col; c < end_col; ++c) {
                     entry_pos_t entry_pos{r,c};
                     if (puddle_pos.find(entry_pos) != puddle_pos.end()) {
                         continue;

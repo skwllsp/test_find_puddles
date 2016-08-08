@@ -71,7 +71,7 @@ endif
 BUILD_DIR = ./build
 TESTS = $(BUILD_DIR)/find_puddles 
 
-# CXXFLAGS += -O2
+#CXXFLAGS += -O3
 
 ifeq ($(MAKECMDGOALS),test)
 	BUILD_DIR = ./build.test
