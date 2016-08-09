@@ -62,10 +62,10 @@ CPPFLAGS += -isystem $(GTEST_DIR)/include
 
 # Flags passed to the C++ compiler.
 ifeq "$(PLATFORM)" "linux"
-    CXXFLAGS += -std=c++11 -g -Wall -Wextra -pthread -fno-omit-frame-pointer -O3
+    CXXFLAGS += -std=c++11 -g -Wall -Wextra -pthread -fno-omit-frame-pointer
     LDFLAGS += -lpthread
 else
-    CXXFLAGS += -D_WIN32_WINNT=0x0501 -std=gnu++0x -g -Wall -Wextra -O3
+    CXXFLAGS += -D_WIN32_WINNT=0x0501 -std=gnu++0x -g -Wall -Wextra
 endif
 
 BUILD_DIR = ./build
