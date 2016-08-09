@@ -3,6 +3,7 @@
 #include <cassert>
 #include <iostream>
 #include <queue>
+#include <functional>
 
 #include "matrix.h"
 
@@ -20,10 +21,16 @@ test_ns::matrix::matrix(rows_t rows)
 int test_ns::matrix::get_height(const entry_pos_t& p) const {
     return rows_[p.row][p.col];
 }
-
+/*
+bool find_one_puddle(int entry_h, const entry_pos_t&,
+        const entry_pos_set_t& leaks_pos, const puddle_pos_t&,
+        entry_pos_set_t& searched_entries,
+        entry_pos_set_t& below_level_entries) const;
+*/
 /*
  *
  */
+/*
 bool
 test_ns::matrix::
 find_one_puddle(const int entry_h, const entry_pos_t& initial_pos,
@@ -122,12 +129,74 @@ find_one_puddle(const int entry_h, const entry_pos_t& initial_pos,
     return !edge_found;
 }
 
+*/
+
+void test_ns::matrix::call_neighbours(const entry_pos_t& curr_pos,
+        std::function<void(const entry_pos_t&,const entry_pos_t&)>
+            check_one_position) const {
+    size_t max_row = rows_.size() - 1;
+    size_t max_col = rows_[0].size() - 1;
+    if (curr_pos.row == 0 && curr_pos.col == 0) {
+        check_one_position(curr_pos,{0,1});
+        check_one_position(curr_pos,{1,0});
+    } else if (curr_pos.row == 0 && curr_pos.col == max_col) {
+        check_one_position(curr_pos,{0,curr_pos.col-1});
+        check_one_position(curr_pos,{1,curr_pos.col});
+    } else if (curr_pos.row == max_row && curr_pos.col == max_col) {
+        check_one_position(curr_pos,{curr_pos.row,curr_pos.col-1});
+        check_one_position(curr_pos,{curr_pos.row-1,curr_pos.col});
+    } else if (curr_pos.row == max_row && curr_pos.col == 0) {
+        check_one_position(curr_pos,{curr_pos.row-1,0});
+        check_one_position(curr_pos,{curr_pos.row,1});
+    } else if (curr_pos.row == 0) {
+        check_one_position(curr_pos,{0,curr_pos.col-1});
+        check_one_position(curr_pos,{0,curr_pos.col+1});
+        check_one_position(curr_pos,{1,curr_pos.col});
+    } else if (curr_pos.row == max_row) {curr_pos,
+        check_one_position(curr_pos,{curr_pos.row,curr_pos.col-1});
+        check_one_position(curr_pos,{curr_pos.row,curr_pos.col+1});
+        check_one_position(curr_pos,{curr_pos.row-1,curr_pos.col});
+    } else if (curr_pos.col == 0) {
+        check_one_position(curr_pos,{curr_pos.row-1,0});
+        check_one_position(curr_pos,{curr_pos.row+1,0});
+        check_one_position(curr_pos,{curr_pos.row,1});
+    } else if (curr_pos.col == max_col) {
+        check_one_position(curr_pos,{curr_pos.row-1,curr_pos.col});
+        check_one_position(curr_pos,{curr_pos.row+1,curr_pos.col});
+        check_one_position(curr_pos,{curr_pos.row,curr_pos.col-1});
+    } else {
+        check_one_position(curr_pos,{curr_pos.row-1,curr_pos.col});
+        check_one_position(curr_pos,{curr_pos.row,curr_pos.col+1});
+        check_one_position(curr_pos,{curr_pos.row+1,curr_pos.col});
+        check_one_position(curr_pos,{curr_pos.row,curr_pos.col-1});
+    }
+}
+
 /*
  *
  */
 void test_ns::matrix::find_leak_area(const entry_pos_t& initial_point,
         sorted_entry_positions_t& leak_points) const {
-
+    std::queue<entry_pos_t> to_search;
+    if (leak_points.find(initial_point) == leak_points.end() ) {
+        return;
+    }
+    to_search.push(initial_point);
+    leak_points.insert(initial_point);
+    auto find_higher_neighbours = [this, &to_search, &leak_points](
+            const entry_pos_t& curr_entry, const entry_pos_t& next_entry) {
+        if (this->get_height(next_entry) >= this->get_height(curr_entry) ) {
+            if (leak_points.find(next_entry) == leak_points.end() ) {
+                to_search.push(next_entry);
+                leak_points.insert(next_entry);
+            }
+        }
+    };
+    while(!to_search.empty()) {
+        auto an_entry = to_search.front();
+        to_search.pop();
+        call_neighbours(an_entry, find_higher_neighbours);
+    }
 }
 
 /*
@@ -135,8 +204,9 @@ void test_ns::matrix::find_leak_area(const entry_pos_t& initial_point,
  */
 void test_ns::matrix::find_puddle_area(const entry_pos_t& initial_point,
         sorted_entry_positions_t& possible_puddle_points,
-        sorted_entry_positions_t& to_investigate_points,
+        sorted_entry_positions_t& other_points,
         sorted_entry_positions_t& exact_puddle_points) const {
+    std::queue<entry_pos_t> to_search;
 
 }
 
@@ -189,13 +259,14 @@ find_puddles_impl(const sorted_entry_positions_t& border_points,
         }
         border_itr = border_row_end_itr;
     }
-    sorted_entry_positions_t to_investigate_points;
+    sorted_entry_positions_t other_points;
     while (!possible_puddle_points.empty()) {
-        const entry_pos_t & an_entry = *possible_puddle_points.begin();
-        sorted_entry_positions_t exact_puddle_points;
+        const entry_pos_t an_entry = *possible_puddle_points.begin();
+        possible_puddle_points.erase(possible_puddle_points.begin());
+        sorted_entry_positions_t this_puddle_points;
         find_puddle_area(an_entry, possible_puddle_points,
-                to_investigate_points, exact_puddle_points);
-        puddle a_puddle(exact_puddle_points);
+                other_points, this_puddle_points);
+        puddle a_puddle(this_puddle_points);
         found_puddles.push_back(std::move(a_puddle));
     }
 

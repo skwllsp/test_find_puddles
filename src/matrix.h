@@ -42,22 +42,17 @@ template<> struct my_hash_t<entry_pos_t> {
 };
 
 using entry_pos_set_t = std::unordered_set<entry_pos_t, my_hash_t<entry_pos_t>>;
-using entry_positions_t = std::set<entry_pos_t>;
+using entry_positions_t = entry_pos_set_t;
 using sorted_entry_positions_t = std::set<entry_pos_t>;
 
 /*
  *
  */
-using entry_pos_ordered_t = std::set<entry_pos_t>;
 struct puddle {
     explicit puddle(sorted_entry_positions_t&);
     sorted_entry_positions_t entries_;
 };
 std::ostream& operator<<(std::ostream&, const puddle&);
-
-using list_puddles = std::list<puddle>;
-using puddle_pos_t = std::unordered_map<entry_pos_t,
-        list_puddles::iterator, my_hash_t<entry_pos_t>>;
 
 /*
  *
@@ -70,10 +65,6 @@ class matrix {
  private:
     rows_t rows_;
     int get_height(const entry_pos_t&) const;
-    bool find_one_puddle(int entry_h, const entry_pos_t&,
-            const entry_pos_set_t& leaks_pos, const puddle_pos_t&,
-            entry_pos_set_t& searched_entries,
-            entry_pos_set_t& below_level_entries) const;
     std::vector<puddle>
     find_puddles_impl(const sorted_entry_positions_t& border_points,
             std::vector<puddle>& found_puddles,
@@ -83,11 +74,13 @@ class matrix {
             sorted_entry_positions_t& leak_points) const;
     void find_puddle_area(const entry_pos_t& initial_point,
             sorted_entry_positions_t& possible_puddle_points,
-            sorted_entry_positions_t& to_investigate_points,
-            sorted_entry_positions_t& exact_puddle_points) const;
+            sorted_entry_positions_t& other_points,
+            sorted_entry_positions_t& this_puddle_points) const;
     void find_border_points(const entry_pos_t& initial_point,
             sorted_entry_positions_t& to_investigate_points,
             sorted_entry_positions_t& new_border_points) const;
+    void call_neighbours(const entry_pos_t& curr_pos,
+            std::function<void(const entry_pos_t&, const entry_pos_t&)>) const;
 };
 
 }  // namespace test_ns

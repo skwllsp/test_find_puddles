@@ -93,8 +93,7 @@ TEST(Matrix, Three2) {
     });
     auto puddles = a_matrix.find_puddles();
     ASSERT_EQ (puddles.size(), 1);
-    ASSERT_EQ(puddles[0].height_, 0);
-    test_ns::entry_pos_ordered_t expected{ {1,1} };
+    test_ns::sorted_entry_positions_t expected{ {1,1} };
     ASSERT_TRUE( (puddles[0].entries_ == expected) );
 }
 
@@ -106,8 +105,7 @@ TEST(Matrix, Three3) {
     });
     auto puddles = a_matrix.find_puddles();
     ASSERT_EQ (puddles.size(), 1);
-    ASSERT_EQ(puddles[0].height_, 0);
-    test_ns::entry_pos_ordered_t expected{ {1,1} };
+    test_ns::sorted_entry_positions_t expected{ {1,1} };
     ASSERT_TRUE( (puddles[0].entries_ == expected) );
 }
 
@@ -189,8 +187,7 @@ TEST(Matrix, Three11) {
     });
     auto puddles = a_matrix.find_puddles();
     ASSERT_EQ (puddles.size(), 1);
-    ASSERT_EQ(puddles[0].height_, 1);
-    test_ns::entry_pos_ordered_t expected{ {1,1} };
+    test_ns::sorted_entry_positions_t expected{ {1,1} };
     ASSERT_TRUE( (puddles[0].entries_ == expected) );
 }
 
@@ -222,8 +219,7 @@ TEST(Matrix, Four2) {
     });
     auto puddles = a_matrix.find_puddles();
     ASSERT_EQ (puddles.size(), 1);
-    ASSERT_EQ(puddles[0].height_, 1);
-    test_ns::entry_pos_ordered_t expected{ {1,1}, {1,2 } };
+    test_ns::sorted_entry_positions_t expected{ {1,1}, {1,2 } };
     ASSERT_TRUE( (puddles[0].entries_ == expected) );
 }
 
@@ -246,8 +242,7 @@ TEST(Matrix, Four4) {
     });
     auto puddles = a_matrix.find_puddles();
     ASSERT_EQ (puddles.size(), 1);
-    ASSERT_EQ(puddles[0].height_, 2);
-    test_ns::entry_pos_ordered_t expected{ {1,1}, {1,2 }, {2,1}, {2,2} };
+    test_ns::sorted_entry_positions_t expected{ {1,1}, {1,2 }, {2,1}, {2,2} };
     ASSERT_TRUE( (puddles[0].entries_ == expected) );
 }
 
@@ -260,10 +255,8 @@ TEST(Matrix, Four5) {
     });
     auto puddles = a_matrix.find_puddles();
     ASSERT_EQ (puddles.size(), 2);
-    ASSERT_EQ(puddles[0].height_, 1);
-    test_ns::entry_pos_ordered_t expected{ {1,1} };
+    test_ns::sorted_entry_positions_t expected{ {1,1} };
     ASSERT_TRUE( (puddles[0].entries_ == expected) );
-    ASSERT_EQ(puddles[1].height_, 1);
     expected = { {2,2} };
     ASSERT_TRUE( (puddles[1].entries_ == expected) );
 }
@@ -277,10 +270,8 @@ TEST(Matrix, Four6) {
     });
     auto puddles = a_matrix.find_puddles();
     ASSERT_EQ (puddles.size(), 2);
-    ASSERT_EQ(puddles[0].height_, 1);
-    test_ns::entry_pos_ordered_t expected{ {1,2} };
+    test_ns::sorted_entry_positions_t expected{ {1,2} };
     ASSERT_TRUE( (puddles[0].entries_ == expected) );
-    ASSERT_EQ(puddles[1].height_, 1);
     expected = { {2,1} };
     ASSERT_TRUE( (puddles[1].entries_ == expected) );
 }
@@ -294,8 +285,7 @@ TEST(Matrix, Four7) {
     });
     auto puddles = a_matrix.find_puddles();
     ASSERT_EQ (puddles.size(), 1);
-    ASSERT_EQ(puddles[0].height_, 1);
-    test_ns::entry_pos_ordered_t expected{ {1,2}, {2,1}, {2,2} };
+    test_ns::sorted_entry_positions_t expected{ {1,2}, {2,1}, {2,2} };
     ASSERT_TRUE( (puddles[0].entries_ == expected) );
 }
 
@@ -308,8 +298,7 @@ TEST(Matrix, Four8) {
     });
     auto puddles = a_matrix.find_puddles();
     ASSERT_EQ (puddles.size(), 1);
-    ASSERT_EQ(puddles[0].height_, 1);
-    test_ns::entry_pos_ordered_t expected{ {1,1}, {1,2}, {2,1}, {2,2} };
+    test_ns::sorted_entry_positions_t expected{ {1,1}, {1,2}, {2,1}, {2,2} };
     ASSERT_TRUE( (puddles[0].entries_ == expected) );
 }
 TEST(Matrix, Four9) {
@@ -322,8 +311,7 @@ TEST(Matrix, Four9) {
     });
     auto puddles = a_matrix.find_puddles();
     ASSERT_EQ (puddles.size(), 1);
-    ASSERT_EQ(puddles[0].height_, 1);
-    test_ns::entry_pos_ordered_t expected{ {1,1}, {1,2}, {2,1}, {2,2},
+    test_ns::sorted_entry_positions_t expected{ {1,1}, {1,2}, {2,1}, {2,2},
         {3,1}, {3,2} };
     ASSERT_TRUE( (puddles[0].entries_ == expected) );
 }
@@ -335,8 +323,7 @@ TEST(Matrix, Four10) {
     });
     auto puddles = a_matrix.find_puddles();
     ASSERT_EQ (puddles.size(), 1);
-    ASSERT_EQ(puddles[0].height_, 1);
-    test_ns::entry_pos_ordered_t expected{ {1,1}, {1,2} };
+    test_ns::sorted_entry_positions_t expected{ {1,1}, {1,2} };
     ASSERT_TRUE( (puddles[0].entries_ == expected) );
 }
 TEST(Matrix, Four11) {
@@ -349,10 +336,8 @@ TEST(Matrix, Four11) {
     });
     auto puddles = a_matrix.find_puddles();
     ASSERT_EQ (puddles.size(), 2);
-    ASSERT_EQ(puddles[0].height_, 0);
-    test_ns::entry_pos_ordered_t expected = { {3,1}, {3,2} };
+    test_ns::sorted_entry_positions_t expected = { {3,1}, {3,2} };
     ASSERT_TRUE( (puddles[0].entries_ == expected) );
-    ASSERT_EQ(puddles[1].height_, 1);
     expected = { {1,1}, {1,2} };
     ASSERT_TRUE( (puddles[1].entries_ == expected) );
 }
@@ -370,16 +355,12 @@ TEST(Matrix, Four12) {
     });
     auto puddles = a_matrix.find_puddles();
     ASSERT_EQ (puddles.size(), 4);
-    ASSERT_EQ(puddles[0].height_, 0);
-    test_ns::entry_pos_ordered_t expected = { {3,1}, {3,2} };
+    test_ns::sorted_entry_positions_t expected = { {3,1}, {3,2} };
     ASSERT_TRUE( (puddles[0].entries_ == expected) );
-    ASSERT_EQ(puddles[1].height_, 0);
     expected = { {7,2} };
     ASSERT_TRUE( (puddles[1].entries_ == expected) );
-    ASSERT_EQ(puddles[2].height_, 1);
     expected = { {1,1}, {1,2} };
     ASSERT_TRUE( (puddles[2].entries_ == expected) );
-    ASSERT_EQ(puddles[3].height_, 1);
     expected = { {5,1} };
     ASSERT_TRUE( (puddles[3].entries_ == expected) );
 }
@@ -398,8 +379,7 @@ TEST(Matrix, Four13) {
     });
     auto puddles = a_matrix.find_puddles();
     ASSERT_EQ (puddles.size(), 1);
-    ASSERT_EQ(puddles[0].height_, 1);
-    test_ns::entry_pos_ordered_t expected{ {1,1}, {1,2},
+    test_ns::sorted_entry_positions_t expected{ {1,1}, {1,2},
         {2,1}, {3,1}, {3,2}, {4,2}, {5,1}, {5,2}, {6,1}, {7,1}, {7,2} };
     ASSERT_TRUE( (puddles[0].entries_ == expected) );
 }
@@ -414,8 +394,7 @@ TEST(Matrix, Four14) {
     });
     auto puddles = a_matrix.find_puddles();
     ASSERT_EQ (puddles.size(), 1);
-    ASSERT_EQ(puddles[0].height_, 3);
-    test_ns::entry_pos_ordered_t expected{ {1,1}, {2,1}, {3,1} };
+    test_ns::sorted_entry_positions_t expected{ {1,1}, {2,1}, {3,1} };
     ASSERT_TRUE( (puddles[0].entries_ == expected) );
 }
 
@@ -457,8 +436,7 @@ TEST(Matrix, Five4) {
     auto puddles = a_matrix.find_puddles();
     ASSERT_EQ (puddles.size(), 1);
     ASSERT_EQ (puddles.size(), 1);
-    ASSERT_EQ(puddles[0].height_, 0);
-    test_ns::entry_pos_ordered_t expected{ {1,1}, {1,2}, {1,3},
+    test_ns::sorted_entry_positions_t expected{ {1,1}, {1,2}, {1,3},
         {2,1}, {2,3}, {3,1}, {3,2}, {3,3} };
     ASSERT_TRUE( (puddles[0].entries_ == expected) );
 }
@@ -473,10 +451,8 @@ TEST(Matrix, Five5) {
     });
     auto puddles = a_matrix.find_puddles();
     ASSERT_EQ (puddles.size(), 2);
-    ASSERT_EQ(puddles[0].height_, 0);
-    test_ns::entry_pos_ordered_t expected{ {3,3} };
+    test_ns::sorted_entry_positions_t expected{ {3,3} };
     ASSERT_TRUE( (puddles[0].entries_ == expected) );
-    ASSERT_EQ(puddles[1].height_, 2);
     expected = { {1,1} };
     ASSERT_TRUE( (puddles[1].entries_ == expected) );
 }
@@ -491,10 +467,8 @@ TEST(Matrix, Five6) {
     });
     auto puddles = a_matrix.find_puddles();
     ASSERT_EQ (puddles.size(), 2);
-    ASSERT_EQ(puddles[0].height_, 0);
-    test_ns::entry_pos_ordered_t expected{ {1,1} };
+    test_ns::sorted_entry_positions_t expected{ {1,1} };
     ASSERT_TRUE( (puddles[0].entries_ == expected) );
-    ASSERT_EQ(puddles[1].height_, 2);
     expected = { {3,3} };
     ASSERT_TRUE( (puddles[1].entries_ == expected) );
 }
@@ -509,8 +483,7 @@ TEST(Matrix, Five7) {
     });
     auto puddles = a_matrix.find_puddles();
     ASSERT_EQ (puddles.size(), 1);
-    ASSERT_EQ(puddles[0].height_, 0);
-    test_ns::entry_pos_ordered_t expected{ {1,1}, {1,2}, {1,3}, 
+    test_ns::sorted_entry_positions_t expected{ {1,1}, {1,2}, {1,3},
     {2,1}, {2,2}, {2,3}, {3,1}, {3,2}, {3,3} };
     ASSERT_TRUE( (puddles[0].entries_ == expected) );
 }
@@ -525,10 +498,8 @@ TEST(Matrix, Five8) {
     });
     auto puddles = a_matrix.find_puddles();
     ASSERT_EQ (puddles.size(), 2);
-    ASSERT_EQ(puddles[0].height_, 0);
-    test_ns::entry_pos_ordered_t expected{ {1,1}};
+    test_ns::sorted_entry_positions_t expected{ {1,1}};
     ASSERT_TRUE( (puddles[0].entries_ == expected) );
-    ASSERT_EQ(puddles[1].height_, 1);
     expected = { {3,3} };
     ASSERT_TRUE( (puddles[1].entries_ == expected) );
 }
@@ -543,13 +514,10 @@ TEST(Matrix, Five9) {
     });
     auto puddles = a_matrix.find_puddles();
     ASSERT_EQ (puddles.size(), 3);
-    ASSERT_EQ(puddles[0].height_, 0);
-    test_ns::entry_pos_ordered_t expected{ {1,1}};
+    test_ns::sorted_entry_positions_t expected{ {1,1}};
     ASSERT_TRUE( (puddles[0].entries_ == expected) );
-    ASSERT_EQ(puddles[1].height_, 0);
     expected = { {2,2} };
     ASSERT_TRUE( (puddles[1].entries_ == expected) );
-    ASSERT_EQ(puddles[2].height_, 1);
     expected = { {3,3} };
     ASSERT_TRUE( (puddles[2].entries_ == expected) );
 }
@@ -564,8 +532,7 @@ TEST(Matrix, Five10) {
     });
     auto puddles = a_matrix.find_puddles();
     ASSERT_EQ (puddles.size(), 1);
-    ASSERT_EQ(puddles[0].height_, 3);
-    test_ns::entry_pos_ordered_t expected{ {1,1}, {2,1}, {3,1}, {3,2}, {3,3}};
+    test_ns::sorted_entry_positions_t expected{ {1,1}, {2,1}, {3,1}, {3,2}, {3,3}};
     ASSERT_TRUE( (puddles[0].entries_ == expected) );
 }
 
@@ -579,10 +546,8 @@ TEST(Matrix, Five11) {
     });
     auto puddles = a_matrix.find_puddles();
     ASSERT_EQ (puddles.size(), 2);
-    ASSERT_EQ(puddles[0].height_, 0);
-    test_ns::entry_pos_ordered_t expected{ {1,1}};
+    test_ns::sorted_entry_positions_t expected{ {1,1}};
     ASSERT_TRUE( (puddles[0].entries_ == expected) );
-    ASSERT_EQ(puddles[1].height_, 1);
     expected = { {3,3} };
     ASSERT_TRUE( (puddles[1].entries_ == expected) );
 }
@@ -597,10 +562,8 @@ TEST(Matrix, Five12) {
     });
     auto puddles = a_matrix.find_puddles();
     ASSERT_EQ (puddles.size(), 2);
-    ASSERT_EQ(puddles[0].height_, 0);
-    test_ns::entry_pos_ordered_t expected{ {1,1}};
+    test_ns::sorted_entry_positions_t expected{ {1,1}};
     ASSERT_TRUE( (puddles[0].entries_ == expected) );
-    ASSERT_EQ(puddles[1].height_, 1);
     expected = { {3,3} };
     ASSERT_TRUE( (puddles[1].entries_ == expected) );
 }
@@ -615,10 +578,8 @@ TEST(Matrix, Five13) {
     });
     auto puddles = a_matrix.find_puddles();
     ASSERT_EQ (puddles.size(), 2);
-    ASSERT_EQ(puddles[0].height_, 0);
-    test_ns::entry_pos_ordered_t expected{ {1,1}};
+    test_ns::sorted_entry_positions_t expected{ {1,1}};
     ASSERT_TRUE( (puddles[0].entries_ == expected) );
-    ASSERT_EQ(puddles[1].height_, 1);
     expected = { {3,3} };
     ASSERT_TRUE( (puddles[1].entries_ == expected) );
 }
@@ -633,10 +594,8 @@ TEST(Matrix, Five14) {
     });
     auto puddles = a_matrix.find_puddles();
     ASSERT_EQ (puddles.size(), 2);
-    ASSERT_EQ(puddles[0].height_, 0);
-    test_ns::entry_pos_ordered_t expected{ {1,1}};
+    test_ns::sorted_entry_positions_t expected{ {1,1}};
     ASSERT_TRUE( (puddles[0].entries_ == expected) );
-    ASSERT_EQ(puddles[1].height_, 1);
     expected = { {3,3} };
     ASSERT_TRUE( (puddles[1].entries_ == expected) );
 }
@@ -651,8 +610,7 @@ TEST(Matrix, Five15) {
     });
     auto puddles = a_matrix.find_puddles();
     ASSERT_EQ (puddles.size(), 1);
-    ASSERT_EQ(puddles[0].height_, 3);
-    test_ns::entry_pos_ordered_t expected{ {1,1}, {2,1}, {3,1}, {3,2}, {3,3}};
+    test_ns::sorted_entry_positions_t expected{ {1,1}, {2,1}, {3,1}, {3,2}, {3,3}};
     ASSERT_TRUE( (puddles[0].entries_ == expected) );
 }
 
@@ -756,4 +714,9 @@ TEST(Matrix, Five25) {
     });
     auto puddles = a_matrix.find_puddles();
     ASSERT_EQ (puddles.size(), 1);
+    test_ns::sorted_entry_positions_t expected{
+        {1,1}, {1,2}, {1,3}, {1,4}, {1,5}, {1,6}, {1,7}, {1,8},
+        {2,1}, {2,2}, {2,3}, {2,4}, {2,5}, {2,6}, {2,7}, {2,8}
+    };
+    ASSERT_TRUE( (puddles[0].entries_ == expected) );
 }
