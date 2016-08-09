@@ -80,9 +80,11 @@ class matrix {
             const sorted_entry_positions_t& outer_leak_points,
             sorted_entry_positions_t& possible_puddle_points,
             sorted_entry_positions_t& other_points,
-            sorted_entry_positions_t& this_puddle_points) const;
+            sorted_entry_positions_t& this_puddle_points,
+            int puddle_h) const;
     void find_border_points(const entry_pos_t& initial_point,
-            sorted_entry_positions_t& to_investigate_points,
+            sorted_entry_positions_t& other_points,
+            sorted_entry_positions_t& this_puddle_points,
             sorted_entry_positions_t& new_border_points) const;
     void call_neighbours(const entry_pos_t& curr_pos,
             std::function<void(const entry_pos_t&, const entry_pos_t&)>) const;

@@ -233,9 +233,8 @@ void test_ns::matrix::find_puddle_area(const entry_pos_t& initial_point,
         const sorted_entry_positions_t& outer_leak_points,
         sorted_entry_positions_t& possible_puddle_points,
         sorted_entry_positions_t& other_points,
-        sorted_entry_positions_t& this_puddle_points) const {
-    int puddle_h = find_puddle_top(initial_point, outer_leak_points);
-
+        sorted_entry_positions_t& this_puddle_points,
+        int puddle_h) const {
     std::queue<entry_pos_t> to_search;
     to_search.push(initial_point);
     this_puddle_points.insert(initial_point);
@@ -269,18 +268,31 @@ void test_ns::matrix::find_puddle_area(const entry_pos_t& initial_point,
  */
 void test_ns::matrix::find_border_points(const entry_pos_t& initial_point,
         sorted_entry_positions_t& other_points,
+        sorted_entry_positions_t& this_puddle_points,
         sorted_entry_positions_t& new_border_points) const {
     new_border_points.clear();
 
     std::queue<entry_pos_t> to_search;
     to_search.push(initial_point);
 
-
+    sorted_entry_positions_t island_points;
+    island_points.insert(initial_point);
+    auto find_island_point =
+            [&other_points, &this_puddle_points, &island_points, &to_search]
+            (const entry_pos_t& curr_entry, const entry_pos_t& next_entry)  {
+        if (this_puddle_points.find(next_entry) != this_puddle_points.end()) {
+            return;
+        }
+        to_search.push(next_entry);
+        island_points.insert(next_entry);
+        other_points.erase(next_entry);
+    };
     while(!to_search.empty()) {
         auto an_entry = to_search.front();
         to_search.pop();
-        call_neighbours(an_entry, find_puddle_point);
+        call_neighbours(an_entry, find_island_point);
     }
+    new_border_points; // TODO
 }
 
 /*
@@ -323,21 +335,23 @@ find_puddles_impl(const sorted_entry_positions_t& border_points,
         }
         border_itr = border_row_end_itr;
     }
-    sorted_entry_positions_t other_points;
     while (!possible_puddle_points.empty()) {
         const entry_pos_t an_entry = *possible_puddle_points.begin();
         sorted_entry_positions_t this_puddle_points;
+        sorted_entry_positions_t other_points;
+        int puddle_h = find_puddle_top(an_entry, all_leak_points);
         find_puddle_area(an_entry, all_leak_points, possible_puddle_points,
-                other_points, this_puddle_points);
+                other_points, this_puddle_points, puddle_h);
+        while (!other_points.empty()) {
+            const entry_pos_t & an_entry = *other_points.begin();
+            sorted_entry_positions_t new_border_points;
+            find_border_points(an_entry, other_points, this_puddle_points,
+                    new_border_points);
+            to_investigate_border_points.push_back(
+                    std::move(new_border_points));
+        }
         puddle a_puddle(this_puddle_points);
         found_puddles.push_back(std::move(a_puddle));
-    }
-
-    while (!other_points.empty()) {
-        const entry_pos_t & an_entry = *possible_puddle_points.begin();
-        sorted_entry_positions_t new_border_points;
-        find_border_points(an_entry, other_points, new_border_points);
-        to_investigate_border_points.push_back(std::move(new_border_points));
     }
 }
 
