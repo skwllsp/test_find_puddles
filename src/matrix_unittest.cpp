@@ -746,3 +746,14 @@ TEST(Matrix, Five24) {
     auto puddles = a_matrix.find_puddles();
     ASSERT_EQ (puddles.size(), 0);
 }
+
+TEST(Matrix, Five25) {
+    test_ns::matrix a_matrix(test_ns::rows_t{
+        {40,40,40,40,40,40,40,40,40,40},
+        {40,12,13,14,15,16,17,18,19,40},
+        {40,22,23,24,25,26,27,28,29,40},
+        {40,40,40,40,40,40,40,40,40,40},
+    });
+    auto puddles = a_matrix.find_puddles();
+    ASSERT_EQ (puddles.size(), 1);
+}

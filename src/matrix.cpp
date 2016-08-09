@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <tuple>
 #include <cassert>
+#include <iostream>
 
 #include "matrix.h"
 
@@ -56,6 +57,7 @@ bool
 test_ns::matrix::
 find_one_puddle(const int entry_h, const entry_pos_t& initial_pos,
         const entry_pos_set_t& leaks_pos,
+        const puddle_pos_t& puddle_pos,
         entry_pos_set_t& searched_entries,
         entry_pos_set_t& below_level_entries) const {
     size_t max_row = rows_.size() - 1;
@@ -65,7 +67,8 @@ find_one_puddle(const int entry_h, const entry_pos_t& initial_pos,
     searched_entries.clear();
     bool edge_found = false;
     auto check_one_position =
-            [entry_h, &leaks_pos, &to_search_positions, &searched_entries,
+            [entry_h, &leaks_pos, &puddle_pos, &to_search_positions,
+             &searched_entries,
              this, &below_level_entries, &edge_found]
             (const entry_pos_t& next_pos) {
         int next_pos_height = this->get_height(next_pos);
@@ -74,13 +77,27 @@ find_one_puddle(const int entry_h, const entry_pos_t& initial_pos,
                 edge_found = true;
                 return;
             }
+            puddle_pos_t::const_iterator puddle_itr =
+                    puddle_pos.find(next_pos);
+            if (puddle_itr != puddle_pos.end()) {
+                const puddle& a_puddle = *(puddle_itr->second);
+                entry_pos_set_t puddle_inner_positions, puddle_outer_positions;
+                a_puddle.get_inner_and_outer_positions(puddle_inner_positions,
+                        puddle_outer_positions);
+                searched_entries.insert(puddle_inner_positions.begin(),
+                    puddle_inner_positions.end());
+                below_level_entries.insert(*puddle_outer_positions.begin());
+                for (auto i = puddle_outer_positions.begin();
+                        i != puddle_outer_positions.end(); ++i) {
+                    if (searched_entries.find(*i) == searched_entries.end()) {
+                        to_search_positions.insert(*i);
+                    }
+                }
+            }
         }
         if (next_pos_height <= entry_h) {
             if (searched_entries.find(next_pos) == searched_entries.end()) {
                 to_search_positions.insert(next_pos);
-                if (next_pos_height < entry_h) {
-                    below_level_entries.insert(next_pos);
-                }
             }
         }
     };
@@ -140,32 +157,36 @@ find_one_puddle(const int entry_h, const entry_pos_t& initial_pos,
 void
 test_ns::matrix::
 find_one_puddle_and_update(int entry_h, const entry_pos_t& entry_pos,
-        entry_pos_set_t& puddle_pos, entry_pos_set_t& leaks_pos,
+        puddle_pos_t& puddle_pos, entry_pos_set_t& leaks_pos,
         std::list<puddle>& puddles,
         size_t& yet_not_found_positions) const {
     entry_pos_set_t searched_entries;
     entry_pos_set_t below_level_entries;
     bool is_puddle = find_one_puddle(entry_h, entry_pos, leaks_pos,
-            searched_entries, below_level_entries);
+            puddle_pos, searched_entries, below_level_entries);
     yet_not_found_positions -= searched_entries.size();
     if (is_puddle) {
-        for (const auto & e : searched_entries) {
-            puddle_pos.insert(e);
-        }
         if (!below_level_entries.empty()) {
             for (auto const & below_entry : below_level_entries) {
-                for (auto i = puddles.rbegin(); i != puddles.rend(); ++i) {
+                for (auto i = puddles.begin(); i != puddles.end(); ++i) {
                     const auto & puddle = *i;
                     auto & entries = puddle.entries_;
                     if (entries.find(below_entry) != entries.end()) {
-                        puddles.erase(std::prev (i.base()));
+                        puddles.erase(i);
                         break;
                     }
                 }
             }
         }
         puddle a_puddle{searched_entries, entry_h};
-        puddles.push_back(std::move(a_puddle));
+        auto itr = puddles.insert(puddles.end(), std::move(a_puddle));
+        for (const auto & e : searched_entries) {
+            auto res = puddle_pos.insert(std::make_pair(e,itr));
+            if (!res.second) {
+                puddle_pos_t::iterator pitr = res.first;
+                pitr->second = itr;
+            }
+        }
     } else {
         for (const auto & e : searched_entries) {
             leaks_pos.insert(e);
@@ -193,7 +214,7 @@ test_ns::matrix::find_puddles() const{
     size_t start_row = 0, end_row = rows_.size();
     size_t start_col = 0, end_col = rows_[0].size();
 
-    entry_pos_set_t puddle_pos;
+    puddle_pos_t puddle_pos;
     entry_pos_set_t leaks_pos;
 
     heights_t heights;
@@ -261,6 +282,30 @@ test_ns::matrix::find_puddles() const{
  */
 test_ns::puddle::puddle(entry_pos_set_t& entry_pos_set, int height)
  : entries_(entry_pos_set.begin(), entry_pos_set.end()), height_(height) {
+}
+
+/*
+ *
+ */
+void
+test_ns::puddle::
+get_inner_and_outer_positions(entry_pos_set_t& inner_pos,
+        entry_pos_set_t& outer_pos) const {
+    size_t first_row = entries_.begin()->row;
+    size_t last_row = entries_.rbegin()->row;
+    for (auto i = entries_.begin(); i != entries_.end(); ++i) {
+        auto & e = *i;
+        if (e.row == first_row || e.row == last_row) {
+            outer_pos.insert(e);
+            continue;
+        }
+        if (std::prev(i)->row != e.row) {
+            outer_pos.insert(*std::prev(i));
+            outer_pos.insert(e);
+            continue;
+        }
+        inner_pos.insert(e);
+    }
 }
 
 

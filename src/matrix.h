@@ -6,6 +6,7 @@
 #include <map>
 #include <list>
 #include <unordered_set>
+#include <unordered_map>
 #include <ostream>
 #include <functional>
 
@@ -42,6 +43,7 @@ template<> struct my_hash_t<entry_pos_t> {
 
 using entry_pos_set_t =
         std::unordered_set<entry_pos_t, my_hash_t<entry_pos_t>>;
+
 /*
  *
  */
@@ -50,8 +52,14 @@ struct puddle {
     puddle(entry_pos_set_t&, int height);
     entry_pos_ordered_t entries_;
     int height_;
+    void get_inner_and_outer_positions(entry_pos_set_t& inner_pos,
+            entry_pos_set_t& outer_pos) const;
 };
 std::ostream& operator<<(std::ostream&, const puddle&);
+
+using list_puddles = std::list<puddle>;
+using puddle_pos_t = std::unordered_map<entry_pos_t,
+        list_puddles::iterator, my_hash_t<entry_pos_t>>;
 
 /*
  *
@@ -72,12 +80,12 @@ class matrix {
     void get_heights(heights_t&) const;
     int get_height(const entry_pos_t&) const;
     bool find_one_puddle(int entry_h, const entry_pos_t&,
-            const entry_pos_set_t& leaks_pos,
+            const entry_pos_set_t& leaks_pos, const puddle_pos_t&,
             entry_pos_set_t& searched_entries,
             entry_pos_set_t& below_level_entries) const;
     void find_one_puddle_and_update(int entry_h, const entry_pos_t&,
-            entry_pos_set_t& puddle_pos, entry_pos_set_t& leaks_pos,
-            std::list<puddle>& puddles,
+            puddle_pos_t& puddle_pos, entry_pos_set_t& leaks_pos,
+            list_puddles& puddles,
             size_t& yet_not_found_positions) const;
 };
 
