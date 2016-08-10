@@ -13,15 +13,15 @@ namespace {
 
 class unknown_area {
  public:
-    unknown_area(const test_ns::sorted_entry_positions_t& border_points,
-            const test_ns::sorted_entry_positions_t& outer_leak_points,
-            const test_ns::sorted_entry_positions_t& flooded_points);
+    unknown_area(test_ns::sorted_entry_positions_t& border_points,
+            test_ns::sorted_entry_positions_t& outer_leak_points,
+            test_ns::sorted_entry_positions_t& flooded_points);
     std::pair<bool, test_ns::entry_pos_t> get_first_unknown_entry() const;
  private:
-    const test_ns::sorted_entry_positions_t& border_points;
-    const test_ns::sorted_entry_positions_t& outer_leak_points;
-    const test_ns::sorted_entry_positions_t& flooded_points;
-    test_ns::sorted_entry_positions_t::const_iterator border_itr;
+    test_ns::sorted_entry_positions_t& border_points;
+    test_ns::sorted_entry_positions_t& outer_leak_points;
+    test_ns::sorted_entry_positions_t& flooded_points;
+    mutable test_ns::sorted_entry_positions_t::const_iterator border_itr;
 };
 
 }
@@ -30,9 +30,9 @@ class unknown_area {
  *
  */
 unknown_area::unknown_area(
-    const test_ns::sorted_entry_positions_t& border_points,
-    const test_ns::sorted_entry_positions_t& outer_leak_points,
-    const test_ns::sorted_entry_positions_t& flooded_points)
+    test_ns::sorted_entry_positions_t& border_points,
+    test_ns::sorted_entry_positions_t& outer_leak_points,
+    test_ns::sorted_entry_positions_t& flooded_points)
     : border_points(border_points), outer_leak_points(outer_leak_points),
       flooded_points(flooded_points), border_itr(border_points.begin())  {
 }
@@ -217,17 +217,88 @@ int test_ns::matrix::find_puddle_height(const entry_pos_t& initial_point,
     return lowest_leak_point;
 }
 
+int test_ns::matrix::find_puddle_surface_height(
+        const entry_pos_t& initial_puddle_point,
+        const sorted_entry_positions_t& outer_leak_points) const {
+    const auto & lp = outer_leak_points;
+    entry_pos_t initial_point{initial_puddle_point.row-1,
+        initial_puddle_point.col};
+    entry_pos_t cp = initial_point;
+    int lowest_leak_point = this->get_height(cp);
+    enum class direction_t {
+        right,
+        down,
+        left,
+        up
+    };
+    direction_t curr_dir = direction_t::right;
+
+    auto leaks = [&lp](const entry_pos_t& p)->bool {
+        return lp.find(p) == lp.end();
+    };
+    auto not_leaks = [&lp](const entry_pos_t& p)->bool {
+        return lp.find(p) != lp.end();
+    };
+
+    auto update_current_point = [&cp, &curr_dir, &leaks, &not_leaks]() {
+        if (curr_dir == direction_t::right) {
+            if (leaks({cp.row, cp.col+1}) && not_leaks({cp.row+1, cp.col+1}) ) {
+                ++cp.col;
+                return;
+            }
+            if (leaks({cp.row, cp.col+1}) && leaks({cp.row-1, cp.col+1})) {
+                curr_dir = direction_t::down;
+                --cp.row;
+                ++cp.col;
+                return;
+            }
+            if (not_leaks({cp.row, cp.col+1})&& leaks({cp.row-1, cp.col})) {
+                curr_dir = direction_t::up;
+                --cp.row;
+                return;
+            }
+            assert(false);
+        }
+        if (curr_dir == direction_t::up) {
+            if (leaks({cp.row-1, cp.col}) && not_leaks({cp.row-1, cp.col+1}) ) {
+                --cp.row;
+                return;
+            }
+            if (not_leaks({cp.row-1, cp.col}) && leaks({cp.row, cp.col-1}) ) {
+                curr_dir = direction_t::left;
+                --cp.col;
+                return;
+            }
+            if (leaks({cp.row-1, cp.col}) && leaks({cp.row-1, cp.col+1}) ) {
+                curr_dir = direction_t::right;
+                --cp.row;
+                ++cp.col;
+                return;
+            }
+            assert(false);
+        }
+    };
+
+    do {
+        update_current_point();
+        auto leak_point_h = this->get_height(curr_p);
+        if (leak_point_h < lowest_leak_point) {
+            lowest_leak_point = leak_point_h;
+        }
+    } while (curr_p != initial_point);
+    return lowest_leak_point;
+}
+
 void test_ns::matrix::find_puddle_with_islands(const entry_pos_t& initial_point,
         const sorted_entry_positions_t& outer_leak_points,
-        sorted_entry_positions_t& possible_puddle_points,
         sorted_entry_positions_t& puddle_with_islands_points) const {
     std::queue<entry_pos_t> to_search;
     to_search.push(initial_point);
 
+    // initial point always belongs to a puddle
     puddle_with_islands_points.insert(initial_point);
-    possible_puddle_points.erase(initial_point);
     auto find_puddle_point =
-        [this, &possible_puddle_points, &to_search,
+        [this, &to_search,
          &puddle_with_islands_points, &outer_leak_points]
         (const entry_pos_t&, const entry_pos_t& next_entry) {
         if (outer_leak_points.find(next_entry) != outer_leak_points.end()) {
@@ -239,7 +310,6 @@ void test_ns::matrix::find_puddle_with_islands(const entry_pos_t& initial_point,
         }
         puddle_with_islands_points.insert(next_entry);
         to_search.push(next_entry);
-        possible_puddle_points.erase(next_entry);
     };
     while(!to_search.empty()) {
         auto an_entry = to_search.front();
@@ -370,12 +440,11 @@ find_puddles_impl(const sorted_entry_positions_t& border_points,
         auto unknown_element = an_unknown_area.get_first_unknown_entry();
         if (!unknown_element.first) {
             break;
-        } else {
-            const entry_pos_t& an_entry = unknown_element.second;
-            sorted_entry_positions_t puddle_with_islands_points;
-            find_puddle_with_islands(an_entry, outer_leak_points,
-                    possible_puddle_points, puddle_with_islands_points);
         }
+        const entry_pos_t& an_entry = unknown_element.second;
+        sorted_entry_positions_t puddle_with_islands_points;
+        find_puddle_with_islands(an_entry, outer_leak_points,
+                puddle_with_islands_points);
     }
 
     // look for pudlles and islands among non leaking points
