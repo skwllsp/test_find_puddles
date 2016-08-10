@@ -720,3 +720,99 @@ TEST(Matrix, Five25) {
     };
     ASSERT_TRUE( (puddles[0].entries_ == expected) );
 }
+
+TEST(Matrix, Recursive1) {
+    test_ns::matrix a_matrix(test_ns::rows_t{
+        { 4, 4, 4, 4, 4, 4, 4, 4, 4, 4},
+        { 4, 0, 0, 0, 0, 0, 0, 0, 0, 4},
+        { 4, 0, 5, 5, 5, 5, 5, 0, 0, 4},
+        { 4, 0, 5, 0, 0, 0, 5, 0, 0, 4},
+        { 4, 0, 5, 0, 5, 0, 5, 0, 0, 4},
+        { 4, 0, 5, 0, 0, 0, 5, 0, 0, 4},
+        { 4, 0, 5, 6, 7, 5, 5, 0, 0, 4},
+        { 4, 0, 0, 0, 0, 0, 0, 0, 0, 4},
+        { 4, 4, 4, 4, 4, 4, 4, 4, 4, 4},
+    });
+    auto puddles = a_matrix.find_puddles();
+    ASSERT_EQ (puddles.size(), 2);
+    test_ns::sorted_entry_positions_t expected{
+        {1,1}, {1,2}, {1,3}, {1,4}, {1,5}, {1,6}, {1,7}, {1,8},
+        {2,1},                                           {2,8},
+        {3,1},                                           {3,8},
+        {4,1},                                           {4,8},
+        {5,1},                                           {5,8},
+        {6,1},                                           {6,8},
+        {7,1}, {7,2}, {7,3}, {7,4}, {7,5}, {7,6}, {7,7}, {7,8}
+    };
+    ASSERT_TRUE( (puddles[0].entries_ == expected) );
+    expected = {
+        {3,3}, {3,4}, {3,5},
+        {4,3},        {4,5},
+        {5,3}, {5,4}, {5,5},
+    };
+    ASSERT_TRUE( (puddles[1].entries_ == expected) );
+}
+
+TEST(Matrix, Recursive2) {
+    test_ns::matrix a_matrix(test_ns::rows_t{
+        { 4, 4, 4, 4, 4, 4, 3, 3, 4, 4, 4, 4},
+        { 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4},
+        { 4, 0, 5, 5, 5, 0, 6, 6, 6, 0, 0, 4},
+        { 4, 0, 5, 0, 5, 0, 5, 2, 4, 0, 0, 4},
+        { 4, 0, 5, 3, 5, 0, 5, 5, 5, 0, 0, 4},
+        { 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4},
+        { 4, 4, 4, 4, 4, 4, 3, 3, 4, 4, 4, 4},
+    });
+    auto puddles = a_matrix.find_puddles();
+    ASSERT_EQ (puddles.size(), 3);
+    test_ns::sorted_entry_positions_t expected{
+        {1,1}, {1,2}, {1,3}, {1,4}, {1,5}, {1,6}, {1,7}, {1,8}, {1,9}, {1,10},
+        {2,1},                                                         {2,10},
+        {3,1},                                                         {3,10},
+        {4,1},                                                         {4,10},
+        {5,1}, {5,2}, {5,3}, {5,4}, {5,5}, {5,6}, {5,7}, {5,8}, {5,9}, {5,10}
+    };
+    ASSERT_TRUE( (puddles[0].entries_ == expected) );
+    expected = { {3,3} };
+    ASSERT_TRUE( (puddles[1].entries_ == expected) );
+    expected = { {3,7} };
+    ASSERT_TRUE( (puddles[1].entries_ == expected) );
+}
+
+TEST(Matrix, Recursive3) {
+    test_ns::matrix a_matrix(test_ns::rows_t{
+        {4, 4, 4, 4, 4, 4, 4, 4, 4, 4},
+        {4, 0, 0, 0, 0, 0, 0, 0, 0, 4},
+        {4, 0, 5, 5, 5, 5, 5, 0, 0, 4},
+        {4, 0, 5, 0, 0, 0, 5, 0, 0, 4},
+        {4, 0, 5, 0, 5, 0, 3, 0, 0, 4},
+        {4, 0, 5, 0, 0, 0, 5, 0, 0, 4},
+        {4, 0, 5, 0, 8, 0, 5, 0, 0, 4},
+        {4, 0, 5, 0, 0, 0, 5, 0, 0, 4},
+        {4, 0, 5, 6, 7, 5, 5, 0, 0, 4},
+        {4, 0, 0, 0, 0, 0, 0, 0, 0, 4},
+        {4, 4, 4, 3, 4, 4, 4, 4, 4, 4},
+    });
+    auto puddles = a_matrix.find_puddles();
+    ASSERT_EQ (puddles.size(), 2);
+    test_ns::sorted_entry_positions_t expected{
+        {1,1}, {1,2}, {1,3}, {1,4}, {1,5}, {1,6}, {1,7}, {1,8},
+        {2,1},                                           {2,8},
+        {3,1},                                           {3,8},
+        {4,1},                                           {4,8},
+        {5,1},                                           {5,8},
+        {6,1},                                           {6,8},
+        {7,1},                                           {7,8},
+        {8,1},                                           {8,8},
+        {9,1}, {9,2}, {9,3}, {9,4}, {9,5}, {9,6}, {9,7}, {9,8}
+    };
+    ASSERT_TRUE( (puddles[0].entries_ == expected) );
+    expected = {
+        {3,3}, {3,4}, {3,5},
+        {4,3},        {4,5},
+        {5,3}, {5,4}, {5,5},
+        {6,3},        {6,5},
+        {7,3}, {7,4}, {7,5},
+    };
+    ASSERT_TRUE( (puddles[1].entries_ == expected) );
+}

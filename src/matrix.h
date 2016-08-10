@@ -5,6 +5,7 @@
 #include <set>
 #include <map>
 #include <list>
+#include <queue>
 #include <unordered_set>
 #include <unordered_map>
 #include <ostream>
@@ -65,17 +66,19 @@ class matrix {
  private:
     rows_t rows_;
     int get_height(const entry_pos_t&) const;
-    std::vector<puddle>
-    find_puddles_impl(const sorted_entry_positions_t& border_points,
-            std::vector<puddle>& found_puddles,
-            std::vector<sorted_entry_positions_t>& to_investigate_border_points)
+
+    void find_puddles_impl(const sorted_entry_positions_t& border_points,
+            std::queue<puddle>& found_puddles,
+            std::queue<sorted_entry_positions_t>& other_border_points)
             const;
     void find_leak_area(const entry_pos_t& initial_point,
             sorted_entry_positions_t& leak_points) const;
-    int find_puddle_surface(const sorted_entry_positions_t&
-            puddle_points);
-    int find_puddle_top(const entry_pos_t& initial_point,
+    int find_puddle_heigh(const entry_pos_t& initial_point,
             const sorted_entry_positions_t& outer_leak_points) const;
+    void find_puddle_with_islands(const entry_pos_t& initial_point,
+            const sorted_entry_positions_t& outer_leak_points,
+            sorted_entry_positions_t& possible_puddle_points,
+            sorted_entry_positions_t& puddle_with_islands_points) const;
     void find_puddle_area(const entry_pos_t& initial_point,
             const sorted_entry_positions_t& outer_leak_points,
             sorted_entry_positions_t& possible_puddle_points,
