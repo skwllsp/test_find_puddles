@@ -8,6 +8,64 @@
 #include "matrix.h"
 
 #include <stddef.h>
+
+namespace {
+
+class unknown_area {
+ public:
+    unknown_area(const test_ns::sorted_entry_positions_t& border_points,
+            const test_ns::sorted_entry_positions_t& outer_leak_points,
+            const test_ns::sorted_entry_positions_t& flooded_points);
+    std::pair<bool, test_ns::entry_pos_t> get_first_unknown_entry() const;
+ private:
+    const test_ns::sorted_entry_positions_t& border_points;
+    const test_ns::sorted_entry_positions_t& outer_leak_points;
+    const test_ns::sorted_entry_positions_t& flooded_points;
+    test_ns::sorted_entry_positions_t::const_iterator border_itr;
+};
+
+}
+
+/*
+ *
+ */
+unknown_area::unknown_area(
+    const test_ns::sorted_entry_positions_t& border_points,
+    const test_ns::sorted_entry_positions_t& outer_leak_points,
+    const test_ns::sorted_entry_positions_t& flooded_points)
+    : border_points(border_points), outer_leak_points(outer_leak_points),
+      flooded_points(flooded_points), border_itr(border_points.begin())  {
+}
+
+std::pair<bool, test_ns::entry_pos_t>
+unknown_area::get_first_unknown_entry() const {
+    using namespace test_ns;
+    while (border_itr != border_points.end()) {
+        auto border_row_start_itr = border_itr;
+        auto border_row_end_itr =  border_itr;
+        size_t border_row = border_row_start_itr->row;
+        while (border_row_end_itr != border_points.end() &&
+               border_row == border_row_end_itr->row) {
+            ++border_row_end_itr;
+        }
+        size_t border_start_col = border_row_start_itr->col;
+        size_t border_end_col = std::prev(border_row_end_itr)->col;
+        while (border_start_col <= border_end_col) {
+            entry_pos_t an_entry = {border_row, border_start_col};
+            ++border_start_col;
+            if (outer_leak_points.find(an_entry) != outer_leak_points.end()) {
+                continue;
+            }
+            if (flooded_points.find(an_entry) != flooded_points.end()) {
+                continue;
+            }
+            return {true, an_entry};
+        }
+        border_itr = border_row_end_itr;
+    }
+    return {false, test_ns::entry_pos_t{0,0}};
+}
+
 /*
  *
  */
@@ -298,43 +356,26 @@ find_puddles_impl(const sorted_entry_positions_t& border_points,
 
     // look for all leaking points
     sorted_entry_positions_t outer_leak_points;
+    sorted_entry_positions_t flooded_points;
     for (auto const & border_point : border_points) {
         find_leak_area(border_point, outer_leak_points);
     }
     auto all_leak_points_end = outer_leak_points.end();
 
     // look for non leaking points
-    auto border_itr = border_points.begin();
-    sorted_entry_positions_t possible_puddle_points;
-    while (border_itr != border_points.end()) {
-        auto border_row_start_itr = border_itr;
-        auto border_row_end_itr =  border_itr;
-        size_t border_row = border_row_start_itr->row;
-        while (border_row_end_itr != border_points.end() &&
-               border_row == border_row_end_itr->row) {
-            ++border_row_end_itr;
-        }
-        size_t border_start_col = border_row_start_itr->col;
-        size_t border_end_col = std::prev(border_row_end_itr)->col;
-        while (border_start_col <= border_end_col) {
-            entry_pos_t an_entry = {border_row, border_start_col};
-            ++border_start_col;
-            if (outer_leak_points.find(an_entry) != all_leak_points_end) {
-                continue;
-            }
-            possible_puddle_points.insert(an_entry);
-        }
-        border_itr = border_row_end_itr;
-    }
+    unknown_area an_unknown_area(border_points,
+            outer_leak_points, flooded_points);
 
-    // separate puddle points belonging to different puddles
-    std::queue<sorted_entry_positions_t> separate_puddles;
-    while (!possible_puddle_points.empty()) {
-        const entry_pos_t an_entry = *possible_puddle_points.begin();
-        sorted_entry_positions_t puddle_with_islands_points;
-        find_puddle_with_islands(an_entry, outer_leak_points,
-                possible_puddle_points, puddle_with_islands_points);
-        separate_puddles.push(std::move(puddle_with_islands_points));
+    while (true) {
+        auto unknown_element = an_unknown_area.get_first_unknown_entry();
+        if (!unknown_element.first) {
+            break;
+        } else {
+            const entry_pos_t& an_entry = unknown_element.second;
+            sorted_entry_positions_t puddle_with_islands_points;
+            find_puddle_with_islands(an_entry, outer_leak_points,
+                    possible_puddle_points, puddle_with_islands_points);
+        }
     }
 
     // look for pudlles and islands among non leaking points
