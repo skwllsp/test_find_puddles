@@ -65,6 +65,8 @@ class matrix {
 
  private:
     rows_t rows_;
+    size_t max_row;
+    size_t max_col;
     int get_height(const entry_pos_t&) const;
 
     void find_puddles_impl(const sorted_entry_positions_t& border_points,
@@ -73,7 +75,7 @@ class matrix {
             const;
     void find_leak_area(const entry_pos_t& initial_point,
             sorted_entry_positions_t& leak_points) const;
-    int find_puddle_heigh(const entry_pos_t& initial_point,
+    int find_puddle_height(const entry_pos_t& initial_point,
             const sorted_entry_positions_t& outer_leak_points) const;
     void find_puddle_with_islands(const entry_pos_t& initial_point,
             const sorted_entry_positions_t& outer_leak_points,
@@ -88,7 +90,9 @@ class matrix {
     void find_border_points(const entry_pos_t& initial_point,
             sorted_entry_positions_t& other_points,
             sorted_entry_positions_t& this_puddle_points,
-            sorted_entry_positions_t& new_border_points) const;
+            sorted_entry_positions_t& new_border_points,
+            sorted_entry_positions_t& possible_puddle_points,
+            const sorted_entry_positions_t& outer_leak_points) const;
     void call_neighbours(const entry_pos_t& curr_pos,
             std::function<void(const entry_pos_t&, const entry_pos_t&)>) const;
 };
