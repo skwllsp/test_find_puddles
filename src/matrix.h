@@ -31,6 +31,9 @@ struct entry_pos_t {
     bool operator==(const entry_pos_t& rhs) const {
         return std::tie(row, col) == std::tie(rhs.row, rhs.col);
     }
+    bool operator!=(const entry_pos_t& rhs) const {
+        return !operator==(rhs);
+    }
 };
 
 template <class T> struct my_hash_t;
@@ -50,7 +53,6 @@ using sorted_entry_positions_t = std::set<entry_pos_t>;
  *
  */
 struct puddle {
-    explicit puddle(sorted_entry_positions_t&);
     sorted_entry_positions_t entries_;
 };
 std::ostream& operator<<(std::ostream&, const puddle&);
@@ -75,28 +77,25 @@ class matrix {
             const;
     void find_leak_area(const entry_pos_t& initial_point,
             sorted_entry_positions_t& leak_points) const;
-    int find_puddle_height(const entry_pos_t& initial_point,
-            const sorted_entry_positions_t& outer_leak_points) const;
     int find_surface_height(
             const entry_pos_t& initial_point,
             const sorted_entry_positions_t& outer_leak_points) const;
-    void find_puddle_with_islands(const entry_pos_t& initial_point,
+    void find_puddle_points(const entry_pos_t& initial_point,
             const sorted_entry_positions_t& outer_leak_points,
-            sorted_entry_positions_t& puddle_with_islands_points) const;
-    void find_puddle_area(const entry_pos_t& initial_point,
+            sorted_entry_positions_t& this_puddle_points,
+            int puddle_h,
+            sorted_entry_positions_t& all_flooded_points) const;
+    void find_island_borders(const entry_pos_t& initial_point,
             const sorted_entry_positions_t& outer_leak_points,
-            sorted_entry_positions_t& other_points,
-            sorted_entry_positions_t& this_puddle_points,
-            int puddle_h) const;
-    void find_border_points(const entry_pos_t& initial_point,
-            sorted_entry_positions_t& other_points,
-            sorted_entry_positions_t& this_puddle_points,
-            sorted_entry_positions_t& new_border_points,
-            sorted_entry_positions_t& possible_puddle_points,
-            const sorted_entry_positions_t& outer_leak_points) const;
+            const sorted_entry_positions_t& this_puddle_points,
+            int puddle_h,
+            std::queue<sorted_entry_positions_t>& other_border_points) const;
     void call_neighbours(const entry_pos_t& curr_pos,
             std::function<void(const entry_pos_t&, const entry_pos_t&)>) const;
+    bool is_perimeter_connected(
+            const sorted_entry_positions_t& border_points) const;
 };
+
 
 }  // namespace test_ns
 
