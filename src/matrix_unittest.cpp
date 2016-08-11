@@ -876,3 +876,63 @@ TEST(Matrix, Recursive4) {
     ASSERT_TRUE( (puddles[1].entries_ == expected) );
     ASSERT_EQ (puddles.size(), 2);
 }
+
+TEST(Matrix, Islands1) {
+    test_ns::matrix a_matrix(test_ns::rows_t{
+        { 4, 4, 4, 4, 4, 4 },
+        { 4, 0, 0, 0, 0, 4 },
+        { 4, 0, 5, 5, 0, 4 },
+        { 4, 0, 5, 0, 0, 4 },
+        { 4, 0, 5, 0, 0, 4 },
+        { 4, 0, 0, 0, 0, 4 },
+        { 4, 4, 4, 4, 4, 4 }
+    });
+    auto puddles = a_matrix.find_puddles();
+    ASSERT_EQ (puddles.size(), 1);
+    test_ns::sorted_entry_positions_t expected{
+        {1,1}, {1,2}, {1,3}, {1,4},
+        {2,1},               {2,4},
+        {3,1},        {3,3}, {3,4},
+        {4,1},        {4,3}, {4,4},
+        {5,1}, {5,2}, {5,3}, {5,4}
+    };
+    ASSERT_TRUE( (puddles[0].entries_ == expected) );
+}
+
+TEST(Matrix, DISABLED_Islands2) {
+    test_ns::matrix a_matrix(test_ns::rows_t{
+        { 4, 4, 4, 4, 4, 4 },
+        { 4, 0, 0, 0, 0, 4 },
+        { 4, 0, 0, 0, 0, 4 },
+        { 4, 0, 0, 5, 0, 4 },
+        { 4, 0, 5, 5, 0, 4 },
+        { 4, 0, 0, 0, 0, 4 },
+        { 4, 4, 4, 4, 4, 4 }
+    });
+    auto puddles = a_matrix.find_puddles();
+    ASSERT_EQ (puddles.size(), 1);
+    test_ns::sorted_entry_positions_t expected{
+        {1,1}, {1,2}, {1,3}, {1,4},
+        {2,1}, {2,2}, {2,3}, {2,4},
+        {3,1}, {3,2},        {3,4},
+        {4,1},               {4,4},
+        {5,1}, {5,2}, {5,3}, {5,4}
+    };
+    ASSERT_TRUE( (puddles[0].entries_ == expected) );
+}
+
+TEST(Matrix, DISABLED_Islands3) {
+    test_ns::matrix a_matrix(test_ns::rows_t{
+        { 4, 4, 4, 4, 4, 4 },
+        { 1, 0, 1, 2, 3, 4 },
+        { 4, 1, 1, 2, 3, 4 },
+        { 4, 1, 1, 2, 3, 4 },
+        { 4, 1, 1, 2, 3, 4 },
+        { 4, 1, 1, 2, 3, 4 },
+        { 4, 4, 4, 4, 4, 4 }
+    });
+    auto puddles = a_matrix.find_puddles();
+    ASSERT_EQ (puddles.size(), 1);
+    test_ns::sorted_entry_positions_t expected{ {1,1} };
+    ASSERT_TRUE( (puddles[0].entries_ == expected) );
+}
