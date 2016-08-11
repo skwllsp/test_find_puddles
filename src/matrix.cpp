@@ -13,26 +13,154 @@ namespace {
 
 class unknown_area {
  public:
-    unknown_area(test_ns::sorted_entry_positions_t& border_points,
-            test_ns::sorted_entry_positions_t& outer_leak_points,
-            test_ns::sorted_entry_positions_t& flooded_points);
+    unknown_area(const test_ns::sorted_entry_positions_t& border_points,
+            const test_ns::sorted_entry_positions_t& outer_leak_points,
+            const test_ns::sorted_entry_positions_t& flooded_points);
     std::pair<bool, test_ns::entry_pos_t> get_first_unknown_entry() const;
  private:
-    test_ns::sorted_entry_positions_t& border_points;
-    test_ns::sorted_entry_positions_t& outer_leak_points;
-    test_ns::sorted_entry_positions_t& flooded_points;
+    const test_ns::sorted_entry_positions_t& border_points;
+    const test_ns::sorted_entry_positions_t& outer_leak_points;
+    const test_ns::sorted_entry_positions_t& flooded_points;
     mutable test_ns::sorted_entry_positions_t::const_iterator border_itr;
 };
 
+class perimeter {
+ public:
+    perimeter(const test_ns::entry_pos_t& initial_inside_point,
+            const test_ns::sorted_entry_positions_t& outer_area);
+    const test_ns::entry_pos_t& get_start_point() const;
+    test_ns::entry_pos_t get_next_point();
+
+ private:
+    enum class direction_t {
+        right,
+        down,
+        left,
+        up
+    };
+    const test_ns::sorted_entry_positions_t& outer_area;
+    test_ns::entry_pos_t initial_inside_point;
+    direction_t curr_dir;
+    test_ns::entry_pos_t initial_point;
+    test_ns::entry_pos_t cp;
+    bool outside(const test_ns::entry_pos_t&) const;
+    bool inside(const test_ns::entry_pos_t&) const;
+};
+
+}  // namespace
+
+/*
+ *
+ */
+perimeter::perimeter(const test_ns::entry_pos_t& initial_inside_point,
+            const test_ns::sorted_entry_positions_t& outer_area)
+    : outer_area(outer_area),
+    initial_inside_point(initial_inside_point),
+    curr_dir(direction_t::right) {
+    initial_point = initial_inside_point;
+    while (!outside(initial_point)) {
+        --initial_point.row;
+    }
+    cp = initial_point;
+}
+
+/*
+ *
+ */
+bool perimeter::outside(const test_ns::entry_pos_t& p) const {
+    return outer_area.find(p) != outer_area.end();
+}
+
+/*
+ *
+ */
+bool perimeter::inside(const test_ns::entry_pos_t& p) const {
+    return outer_area.find(p) == outer_area.end();
+}
+
+/*
+ *
+ */
+const test_ns::entry_pos_t& perimeter::get_start_point() const {
+    return initial_point;
+}
+
+/*
+ *
+ */
+test_ns::entry_pos_t perimeter::get_next_point() {
+    if (curr_dir == direction_t::right) {
+        if (outside({cp.row, cp.col+1})) {
+            if (inside({cp.row+1, cp.col+1}) ) {
+                ++cp.col;
+            } else {
+                assert (outside({cp.row+1, cp.col+1}));
+                curr_dir = direction_t::down;
+                ++cp.row;
+                ++cp.col;
+            }
+        } else {
+            assert(outside({cp.row-1, cp.col}));
+            curr_dir = direction_t::up;
+            --cp.row;
+        }
+    } else if (curr_dir == direction_t::up) {
+        if (outside({cp.row-1, cp.col})) {
+            if (inside({cp.row-1, cp.col+1})) {
+                --cp.row;
+            } else {
+                assert(outside({cp.row-1, cp.col+1}));
+                curr_dir = direction_t::right;
+                --cp.row;
+                ++cp.col;
+            }
+        } else {
+            assert(outside({cp.row, cp.col-1}));
+            curr_dir = direction_t::left;
+            --cp.col;
+        }
+    } else if (curr_dir == direction_t::down) {
+        if (outside({cp.row+1, cp.col})) {
+            if (inside({cp.row+1, cp.col-1})) {
+                ++cp.row;
+            } else {
+                assert(outside({cp.row+1, cp.col-1}));
+                curr_dir = direction_t::left;
+                ++cp.row;
+                --cp.col;
+            }
+        } else {
+            assert(outside({cp.row, cp.col+1}));
+                curr_dir = direction_t::right;
+                ++cp.col;
+        }
+    } else {
+        assert(curr_dir == direction_t::left);
+        if (outside({cp.row, cp.col-1})) {
+            if (inside({cp.row-1, cp.col-1})) {
+                --cp.col;
+            } else {
+                assert(outside({cp.row-1, cp.col-1}));
+                curr_dir = direction_t::up;
+                --cp.col;
+                --cp.row;
+            }
+        } else {
+            assert(outside({cp.row+1, cp.col}));
+            curr_dir = direction_t::down;
+            ++cp.row;
+        }
+    }
+    return cp;
 }
 
 /*
  *
  */
 unknown_area::unknown_area(
-    test_ns::sorted_entry_positions_t& border_points,
-    test_ns::sorted_entry_positions_t& outer_leak_points,
-    test_ns::sorted_entry_positions_t& flooded_points)
+    const test_ns::sorted_entry_positions_t& border_points,
+    const test_ns::sorted_entry_positions_t& outer_leak_points,
+    const test_ns::sorted_entry_positions_t& flooded_points)
     : border_points(border_points), outer_leak_points(outer_leak_points),
       flooded_points(flooded_points), border_itr(border_points.begin())  {
 }
@@ -65,6 +193,7 @@ unknown_area::get_first_unknown_entry() const {
     }
     return {false, test_ns::entry_pos_t{0,0}};
 }
+
 
 /*
  *
@@ -217,75 +346,22 @@ int test_ns::matrix::find_puddle_height(const entry_pos_t& initial_point,
     return lowest_leak_point;
 }
 
-int test_ns::matrix::find_puddle_surface_height(
+int test_ns::matrix::find_surface_height(
         const entry_pos_t& initial_puddle_point,
         const sorted_entry_positions_t& outer_leak_points) const {
-    const auto & lp = outer_leak_points;
-    entry_pos_t initial_point{initial_puddle_point.row-1,
-        initial_puddle_point.col};
-    entry_pos_t cp = initial_point;
-    int lowest_leak_point = this->get_height(cp);
-    enum class direction_t {
-        right,
-        down,
-        left,
-        up
-    };
-    direction_t curr_dir = direction_t::right;
-
-    auto leaks = [&lp](const entry_pos_t& p)->bool {
-        return lp.find(p) == lp.end();
-    };
-    auto not_leaks = [&lp](const entry_pos_t& p)->bool {
-        return lp.find(p) != lp.end();
-    };
-
-    auto update_current_point = [&cp, &curr_dir, &leaks, &not_leaks]() {
-        if (curr_dir == direction_t::right) {
-            if (leaks({cp.row, cp.col+1}) && not_leaks({cp.row+1, cp.col+1}) ) {
-                ++cp.col;
-                return;
-            }
-            if (leaks({cp.row, cp.col+1}) && leaks({cp.row-1, cp.col+1})) {
-                curr_dir = direction_t::down;
-                --cp.row;
-                ++cp.col;
-                return;
-            }
-            if (not_leaks({cp.row, cp.col+1})&& leaks({cp.row-1, cp.col})) {
-                curr_dir = direction_t::up;
-                --cp.row;
-                return;
-            }
-            assert(false);
+    perimeter a_perimeter(initial_puddle_point, outer_leak_points);
+    const auto perimeter_start_point = a_perimeter.get_start_point();
+    int lowest_leak_point = get_height(a_perimeter.get_start_point());
+    while (true) {
+        entry_pos_t perimeter_next_point (a_perimeter.get_next_point());
+        if (perimeter_next_point == perimeter_start_point) {
+            break;
         }
-        if (curr_dir == direction_t::up) {
-            if (leaks({cp.row-1, cp.col}) && not_leaks({cp.row-1, cp.col+1}) ) {
-                --cp.row;
-                return;
-            }
-            if (not_leaks({cp.row-1, cp.col}) && leaks({cp.row, cp.col-1}) ) {
-                curr_dir = direction_t::left;
-                --cp.col;
-                return;
-            }
-            if (leaks({cp.row-1, cp.col}) && leaks({cp.row-1, cp.col+1}) ) {
-                curr_dir = direction_t::right;
-                --cp.row;
-                ++cp.col;
-                return;
-            }
-            assert(false);
-        }
-    };
-
-    do {
-        update_current_point();
-        auto leak_point_h = this->get_height(curr_p);
+        auto leak_point_h = get_height(perimeter_next_point);
         if (leak_point_h < lowest_leak_point) {
             lowest_leak_point = leak_point_h;
         }
-    } while (curr_p != initial_point);
+    }
     return lowest_leak_point;
 }
 
@@ -324,23 +400,13 @@ void test_ns::matrix::find_puddle_with_islands(const entry_pos_t& initial_point,
  */
 void test_ns::matrix::find_puddle_area(const entry_pos_t& initial_point,
         const sorted_entry_positions_t&,
-        sorted_entry_positions_t& possible_puddle_points,
         sorted_entry_positions_t& other_points,
         sorted_entry_positions_t& this_puddle_points,
         int puddle_h) const {
     std::queue<entry_pos_t> to_search;
-    to_search.push(initial_point);
-
-    this_puddle_points.insert(initial_point);
-    possible_puddle_points.erase(initial_point);
     auto find_puddle_point =
-        [this, puddle_h, &possible_puddle_points, &to_search,
-         &this_puddle_points, &other_points]
+        [this, puddle_h, &to_search, &this_puddle_points, &other_points]
         (const entry_pos_t&, const entry_pos_t& next_entry) {
-        if (possible_puddle_points.find(next_entry) ==
-                possible_puddle_points.end()) {
-            return;
-        }
         if (this_puddle_points.find(next_entry) != this_puddle_points.end()) {
             return;
         }
@@ -354,8 +420,10 @@ void test_ns::matrix::find_puddle_area(const entry_pos_t& initial_point,
         } else {
             other_points.insert(next_entry);
         }
-        possible_puddle_points.erase(next_entry);
     };
+
+    to_search.push(initial_point);
+    this_puddle_points.insert(initial_point);
     while(!to_search.empty()) {
         auto an_entry = to_search.front();
         to_search.pop();
@@ -441,12 +509,23 @@ find_puddles_impl(const sorted_entry_positions_t& border_points,
         if (!unknown_element.first) {
             break;
         }
-        const entry_pos_t& an_entry = unknown_element.second;
-        sorted_entry_positions_t puddle_with_islands_points;
-        find_puddle_with_islands(an_entry, outer_leak_points,
-                puddle_with_islands_points);
-    }
+        const entry_pos_t& a_puddle__entry = unknown_element.second;
 
+        // find the height of surface for this puddle
+        int puddle_h = find_surface_height(a_puddle__entry, outer_leak_points);
+
+        // find the puddle itself
+        sorted_entry_positions_t this_puddle_points;
+        sorted_entry_positions_t other_points;
+        find_puddle_area(a_puddle__entry, outer_leak_points,
+                other_points, this_puddle_points,
+                puddle_h);
+
+        sorted_entry_positions_t puddle_with_islands_points;
+        //find_puddle_with_islands(an_entry, outer_leak_points,
+        //        puddle_with_islands_points);
+    }
+    /*
     // look for pudlles and islands among non leaking points
     while (!separate_puddles.empty()) {
         auto possible_puddle_points (std::move(separate_puddles.front()));
@@ -477,6 +556,7 @@ find_puddles_impl(const sorted_entry_positions_t& border_points,
             found_puddles.push(std::move(a_puddle));
         }
     }
+    */
 }
 
 /*

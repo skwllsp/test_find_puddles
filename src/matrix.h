@@ -77,7 +77,7 @@ class matrix {
             sorted_entry_positions_t& leak_points) const;
     int find_puddle_height(const entry_pos_t& initial_point,
             const sorted_entry_positions_t& outer_leak_points) const;
-    int find_puddle_surface_height(
+    int find_surface_height(
             const entry_pos_t& initial_point,
             const sorted_entry_positions_t& outer_leak_points) const;
     void find_puddle_with_islands(const entry_pos_t& initial_point,
@@ -85,7 +85,6 @@ class matrix {
             sorted_entry_positions_t& puddle_with_islands_points) const;
     void find_puddle_area(const entry_pos_t& initial_point,
             const sorted_entry_positions_t& outer_leak_points,
-            sorted_entry_positions_t& possible_puddle_points,
             sorted_entry_positions_t& other_points,
             sorted_entry_positions_t& this_puddle_points,
             int puddle_h) const;
