@@ -79,7 +79,8 @@ class matrix {
             sorted_entry_positions_t& leak_points) const;
     int find_surface_height(
             const entry_pos_t& initial_point,
-            const sorted_entry_positions_t& outer_leak_points) const;
+            const sorted_entry_positions_t& outer_leak_points,
+            const sorted_entry_positions_t& flooded_points) const;
     void find_puddle_points(const entry_pos_t& initial_point,
             const sorted_entry_positions_t& outer_leak_points,
             sorted_entry_positions_t& this_puddle_points,
@@ -89,7 +90,8 @@ class matrix {
             const sorted_entry_positions_t& outer_leak_points,
             const sorted_entry_positions_t& this_puddle_points,
             int puddle_h,
-            std::queue<sorted_entry_positions_t>& other_border_points) const;
+            std::queue<sorted_entry_positions_t>& other_border_points,
+            sorted_entry_positions_t& all_perimeter_points) const;
     void call_neighbours(const entry_pos_t& curr_pos,
             std::function<void(const entry_pos_t&, const entry_pos_t&)>) const;
     bool is_perimeter_connected(

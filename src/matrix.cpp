@@ -15,13 +15,21 @@ class unknown_area {
  public:
     unknown_area(const test_ns::sorted_entry_positions_t& border_points,
             const test_ns::sorted_entry_positions_t& outer_leak_points,
-            const test_ns::sorted_entry_positions_t& flooded_points);
-    std::pair<bool, test_ns::entry_pos_t> get_first_unknown_entry() const;
+            const test_ns::sorted_entry_positions_t& flooded_points,
+            const test_ns::sorted_entry_positions_t& all_perimeter_points);
+    std::pair<bool, test_ns::entry_pos_t> get_first_unknown_entry();
  private:
     const test_ns::sorted_entry_positions_t& border_points;
     const test_ns::sorted_entry_positions_t& outer_leak_points;
     const test_ns::sorted_entry_positions_t& flooded_points;
-    mutable test_ns::sorted_entry_positions_t::const_iterator border_itr;
+    const test_ns::sorted_entry_positions_t& all_perimeter_points;
+    test_ns::sorted_entry_positions_t::const_iterator border_itr;
+    bool is_iterating_row;
+    size_t border_row;
+    size_t border_start_col;
+    size_t border_end_col;
+    test_ns::sorted_entry_positions_t::const_iterator border_row_start_itr;
+    test_ns::sorted_entry_positions_t::const_iterator border_row_end_itr;
 };
 
 enum class direction_t {
@@ -34,14 +42,17 @@ enum class direction_t {
 class perimeter {
  public:
     perimeter(const test_ns::entry_pos_t& initial_user_point,
-            const test_ns::sorted_entry_positions_t& outer_area);
+            const test_ns::sorted_entry_positions_t& outer_area,
+            const test_ns::sorted_entry_positions_t& flooded_area);
     const test_ns::entry_pos_t& get_start_point() const;
     const test_ns::entry_pos_t& get_start_inside_point() const;
     test_ns::entry_pos_t get_next_point();
     test_ns::entry_pos_t get_next_inside_point();
+    bool dead_end() const;
 
  private:
     const test_ns::sorted_entry_positions_t& outer_area;
+    const test_ns::sorted_entry_positions_t& flooded_area;
     test_ns::entry_pos_t initial_user_point;
     direction_t curr_dir;
     test_ns::entry_pos_t initial_point;
@@ -49,6 +60,7 @@ class perimeter {
     test_ns::entry_pos_t cp;
     test_ns::entry_pos_t inside_cp;
     bool current_point_valid;
+    bool dead_end_;
     bool outside(const test_ns::entry_pos_t&) const;
     bool inside(const test_ns::entry_pos_t&) const;
     void move_point();
@@ -60,12 +72,13 @@ class perimeter {
  *
  */
 perimeter::perimeter(const test_ns::entry_pos_t& initial_user_point,
-            const test_ns::sorted_entry_positions_t& outer_area)
-    : outer_area(outer_area),
+            const test_ns::sorted_entry_positions_t& outer_area,
+            const test_ns::sorted_entry_positions_t& flooded_area)
+    : outer_area(outer_area), flooded_area(flooded_area),
     initial_user_point(initial_user_point),
     curr_dir(direction_t::right),
     initial_point(initial_user_point),
-    current_point_valid(false) {
+    current_point_valid(false), dead_end_{false} {
     if (!outside(initial_point)) {
         while (!outside(initial_point)) {
             --initial_point.row;
@@ -78,14 +91,16 @@ perimeter::perimeter(const test_ns::entry_pos_t& initial_user_point,
  *
  */
 bool perimeter::outside(const test_ns::entry_pos_t& p) const {
-    return outer_area.find(p) != outer_area.end();
+    return outer_area.find(p) != outer_area.end() ||
+            flooded_area.find(p) != flooded_area.end();
 }
 
 /*
  *
  */
 bool perimeter::inside(const test_ns::entry_pos_t& p) const {
-    return outer_area.find(p) == outer_area.end();
+    return outer_area.find(p) == outer_area.end() &&
+            flooded_area.find(p) == flooded_area.end();
 }
 
 /*
@@ -118,6 +133,10 @@ test_ns::entry_pos_t perimeter::get_next_inside_point() {
     return inside_cp;
 }
 
+bool perimeter::dead_end() const {
+    return dead_end_;
+}
+
 /*
  *
  */
@@ -128,80 +147,104 @@ void perimeter::move_point() {
         current_point_valid = true;
     }
     if (curr_dir == direction_t::right) {
-        if (outside({cp.row, cp.col+1})) {
+        if (outside({cp.row, cp.col+1}) || outside({cp.row+1, cp.col+1})) {
             if (inside({cp.row+1, cp.col+1}) ) {
                 ++cp.col;
                 ++inside_cp.col;
             } else {
-                assert (outside({cp.row+1, cp.col+1}));
-                curr_dir = direction_t::down;
-                ++cp.row;
-                ++cp.col;
-                // inside_cp is the same
+                if (outside({cp.row+1, cp.col+1})) {
+                    curr_dir = direction_t::down;
+                    ++cp.row;
+                    ++cp.col;
+                    // inside_cp is the same
+                } else {
+                    dead_end_ = true;
+                }
             }
         } else {
-            assert(outside({cp.row-1, cp.col}));
-            curr_dir = direction_t::up;
-            --cp.row;
-            --inside_cp.row;
-            ++inside_cp.col;
+            if (outside({cp.row-1, cp.col})) {
+                curr_dir = direction_t::up;
+                --cp.row;
+                --inside_cp.row;
+                ++inside_cp.col;
+            } else {
+                dead_end_ = true;
+            }
         }
     } else if (curr_dir == direction_t::up) {
-        if (outside({cp.row-1, cp.col})) {
+        if (outside({cp.row-1, cp.col}) || outside({cp.row-1, cp.col+1})) {
             if (inside({cp.row-1, cp.col+1})) {
                 --cp.row;
                 --inside_cp.row;
             } else {
-                assert(outside({cp.row-1, cp.col+1}));
-                curr_dir = direction_t::right;
-                --cp.row;
-                ++cp.col;
-                // inside_cp is the same
+                if (outside({cp.row-1, cp.col+1})) {
+                    curr_dir = direction_t::right;
+                    --cp.row;
+                    ++cp.col;
+                    // inside_cp is the same
+                } else {
+                    dead_end_ = true;
+                }
             }
         } else {
-            assert(outside({cp.row, cp.col-1}));
-            curr_dir = direction_t::left;
-            --cp.col;
-            --inside_cp.row;
-            --inside_cp.col;
+            if (outside({cp.row, cp.col-1})) {
+                curr_dir = direction_t::left;
+                --cp.col;
+                --inside_cp.row;
+                --inside_cp.col;
+            } else {
+                dead_end_ = true;
+            }
         }
     } else if (curr_dir == direction_t::down) {
-        if (outside({cp.row+1, cp.col})) {
+        if (outside({cp.row+1, cp.col}) || outside({cp.row+1, cp.col-1})) {
             if (inside({cp.row+1, cp.col-1})) {
                 ++cp.row;
                 ++inside_cp.row;
             } else {
-                assert(outside({cp.row+1, cp.col-1}));
-                curr_dir = direction_t::left;
-                ++cp.row;
-                --cp.col;
+                if (outside({cp.row+1, cp.col-1})) {
+                    curr_dir = direction_t::left;
+                    ++cp.row;
+                    --cp.col;
+                } else {
+                    dead_end_ = true;
+                }
             }
         } else {
-            assert(outside({cp.row, cp.col+1}));
+            if(outside({cp.row, cp.col+1})) {
                 curr_dir = direction_t::right;
                 ++cp.col;
                 ++inside_cp.row;
                 ++inside_cp.col;
+            } else {
+                dead_end_ = true;
+            }
         }
     } else {
         assert(curr_dir == direction_t::left);
-        if (outside({cp.row, cp.col-1})) {
+        if (outside({cp.row, cp.col-1}) || outside({cp.row-1, cp.col-1})) {
             if (inside({cp.row-1, cp.col-1})) {
                 --cp.col;
                 --inside_cp.col;
             } else {
-                assert(outside({cp.row-1, cp.col-1}));
-                curr_dir = direction_t::up;
-                --cp.col;
-                --cp.row;
-                // inside_cp is the same
+                if (outside({cp.row-1, cp.col-1})) {
+                    curr_dir = direction_t::up;
+                    --cp.col;
+                    --cp.row;
+                    // inside_cp is the same
+                } else {
+                    dead_end_ = true;
+                }
             }
         } else {
-            assert(outside({cp.row+1, cp.col}));
-            curr_dir = direction_t::down;
-            ++cp.row;
-            ++inside_cp.row;
-            --inside_cp.col;
+            if (outside({cp.row+1, cp.col})) {
+                curr_dir = direction_t::down;
+                ++cp.row;
+                ++inside_cp.row;
+                --inside_cp.col;
+            } else {
+                dead_end_ = true;
+            }
         }
     }
 }
@@ -212,26 +255,34 @@ void perimeter::move_point() {
 unknown_area::unknown_area(
     const test_ns::sorted_entry_positions_t& border_points,
     const test_ns::sorted_entry_positions_t& outer_leak_points,
-    const test_ns::sorted_entry_positions_t& flooded_points)
+    const test_ns::sorted_entry_positions_t& flooded_points,
+    const test_ns::sorted_entry_positions_t& all_perimeter_points)
     : border_points(border_points), outer_leak_points(outer_leak_points),
-      flooded_points(flooded_points), border_itr(border_points.begin())  {
+      flooded_points(flooded_points),
+      all_perimeter_points(all_perimeter_points),
+      border_itr(border_points.begin()),
+      is_iterating_row(false), border_row{0},
+      border_start_col(0), border_end_col{0},
+      border_row_start_itr (border_itr),  border_row_end_itr (border_itr) {
 }
 
 std::pair<bool, test_ns::entry_pos_t>
-unknown_area::get_first_unknown_entry() const {
-    using namespace test_ns;
+unknown_area::get_first_unknown_entry() {
     while (border_itr != border_points.end()) {
-        auto border_row_start_itr = border_itr;
-        auto border_row_end_itr =  border_itr;
-        size_t border_row = border_row_start_itr->row;
-        while (border_row_end_itr != border_points.end() &&
-               border_row == border_row_end_itr->row) {
-            ++border_row_end_itr;
+        if (!is_iterating_row) {
+            border_row_start_itr = border_itr;
+            border_row_end_itr =  border_itr;
+            border_row = border_row_start_itr->row;
+            while (border_row_end_itr != border_points.end() &&
+                   border_row == border_row_end_itr->row) {
+                ++border_row_end_itr;
+            }
+            border_start_col = border_row_start_itr->col;
+            border_end_col = std::prev(border_row_end_itr)->col;
         }
-        size_t border_start_col = border_row_start_itr->col;
-        size_t border_end_col = std::prev(border_row_end_itr)->col;
+        is_iterating_row = true;
         while (border_start_col <= border_end_col) {
-            entry_pos_t an_entry = {border_row, border_start_col};
+            test_ns::entry_pos_t an_entry = {border_row, border_start_col};
             ++border_start_col;
             if (outer_leak_points.find(an_entry) != outer_leak_points.end()) {
                 continue;
@@ -239,8 +290,13 @@ unknown_area::get_first_unknown_entry() const {
             if (flooded_points.find(an_entry) != flooded_points.end()) {
                 continue;
             }
+            if (all_perimeter_points.find(an_entry) !=
+                    all_perimeter_points.end()) {
+                continue;
+            }
             return {true, an_entry};
         }
+        is_iterating_row = false;
         border_itr = border_row_end_itr;
     }
     return {false, test_ns::entry_pos_t{0,0}};
@@ -366,8 +422,10 @@ void test_ns::matrix::find_leak_area(const entry_pos_t& initial_point,
 
 int test_ns::matrix::find_surface_height(
         const entry_pos_t& initial_puddle_point,
-        const sorted_entry_positions_t& outer_leak_points) const {
-    perimeter a_perimeter(initial_puddle_point, outer_leak_points);
+        const sorted_entry_positions_t& outer_leak_points,
+        const sorted_entry_positions_t& flooded_points) const {
+    perimeter a_perimeter(initial_puddle_point, outer_leak_points,
+            flooded_points);
     const auto perimeter_start_point = a_perimeter.get_start_point();
     int lowest_leak_point = get_height(a_perimeter.get_start_point());
     while (true) {
@@ -415,6 +473,7 @@ void test_ns::matrix::find_puddle_points(const entry_pos_t& initial_point,
 
     to_search.push(initial_point);
     this_puddle_points.insert(initial_point);
+    all_flooded_points.insert(initial_point);
     while(!to_search.empty()) {
         auto an_entry = to_search.front();
         to_search.pop();
@@ -429,18 +488,15 @@ void test_ns::matrix::find_island_borders(const entry_pos_t& initial_point,
         const sorted_entry_positions_t& outer_leaks,
         const sorted_entry_positions_t& this_puddle_points,
         int puddle_h,
-        std::queue<sorted_entry_positions_t>& other_border_points) const {
+        std::queue<sorted_entry_positions_t>& other_border_points,
+        sorted_entry_positions_t& all_perimeter_points) const {
     std::queue<entry_pos_t> to_search;
-    entry_positions_t all_perimeter_points;
+    entry_pos_set_t traversed;
 
     auto find_island =
         [this, puddle_h, &to_search, &outer_leaks, &this_puddle_points,
-         &all_perimeter_points, &other_border_points]
+         &all_perimeter_points, &other_border_points, &traversed]
         (const entry_pos_t&, const entry_pos_t& point_to_consider) {
-        if (this_puddle_points.find(point_to_consider) !=
-                this_puddle_points.end()) {
-            return;
-        }
         if (outer_leaks.find(point_to_consider) != outer_leaks.end()) {
             return;
         }
@@ -448,23 +504,39 @@ void test_ns::matrix::find_island_borders(const entry_pos_t& initial_point,
             all_perimeter_points.end()) {
             return;
         }
+        if (traversed.find(point_to_consider) != traversed.end()) {
+            return;
+        }
+        traversed.insert(point_to_consider);
+        if (this_puddle_points.find(point_to_consider) !=
+                this_puddle_points.end()) {
+            to_search.push(point_to_consider);
+            return;
+        }
         auto point_to_consider_h = this->get_height(point_to_consider);
         if (point_to_consider_h >= puddle_h) {
-            perimeter a_perimeter(point_to_consider, this_puddle_points);
+            perimeter a_perimeter(point_to_consider, outer_leaks,
+                    this_puddle_points);
             entry_pos_t perimeter_initial_point =
                 a_perimeter.get_start_inside_point();
             sorted_entry_positions_t perimeter_points;
             perimeter_points.insert(point_to_consider);
+            all_perimeter_points.insert(point_to_consider);
             while (true) {
                 auto next_inside_point = a_perimeter.get_next_inside_point();
+                if (a_perimeter.dead_end()) {
+                    break;
+                }
                 if (next_inside_point == perimeter_initial_point) {
                     break;
                 }
                 perimeter_points.insert(next_inside_point);
                 all_perimeter_points.insert(next_inside_point);
             }
-            other_border_points.push(std::move(perimeter_points));
-            to_search.push(point_to_consider);
+            if (!a_perimeter.dead_end()) {
+                other_border_points.push(std::move(perimeter_points));
+                to_search.push(point_to_consider);
+            }
         }
     };
 
@@ -578,33 +650,44 @@ find_puddles_impl(const sorted_entry_positions_t& border_points,
     // look for all leaking points
     sorted_entry_positions_t outer_leak_points;
     sorted_entry_positions_t flooded_points;
+    sorted_entry_positions_t all_perimeter_points;
+
     for (auto const & border_point : border_points) {
         find_leak_area(border_point, outer_leak_points);
     }
 
     // look for non leaking points
     unknown_area an_unknown_area(border_points,
-            outer_leak_points, flooded_points);
+            outer_leak_points, flooded_points, all_perimeter_points);
 
-    auto unknown_element = an_unknown_area.get_first_unknown_entry();
-    if (!unknown_element.first) {
-        return;
+    while (true) {
+        auto unknown_element = an_unknown_area.get_first_unknown_entry();
+        if (!unknown_element.first) {
+            break;
+        }
+        const entry_pos_t& an_unknown_entry = unknown_element.second;
+
+        // find the height of surface for this puddle
+        int puddle_h = find_surface_height(an_unknown_entry,
+                outer_leak_points, flooded_points);
+
+        if (get_height(an_unknown_entry) >= puddle_h) {
+            // it is an island near a higher point and a puddle
+            continue;
+        }
+
+        // find the puddle itself
+        sorted_entry_positions_t this_puddle_points;
+        find_puddle_points(an_unknown_entry, outer_leak_points,
+                this_puddle_points, puddle_h, flooded_points);
+
+        find_island_borders(an_unknown_entry, outer_leak_points,
+                this_puddle_points, puddle_h, other_border_points,
+                all_perimeter_points);
+
+        puddle a_puddle{std::move(this_puddle_points)};
+        found_puddles.push(std::move(a_puddle));
     }
-    const entry_pos_t& a_puddle_entry = unknown_element.second;
-
-    // find the height of surface for this puddle
-    int puddle_h = find_surface_height(a_puddle_entry, outer_leak_points);
-
-    // find the puddle itself
-    sorted_entry_positions_t this_puddle_points;
-    find_puddle_points(a_puddle_entry, outer_leak_points,
-            this_puddle_points, puddle_h, flooded_points);
-
-    puddle a_puddle{std::move(this_puddle_points)};
-    found_puddles.push(std::move(a_puddle));
-
-    find_island_borders(a_puddle_entry, outer_leak_points,
-            this_puddle_points, puddle_h, other_border_points);
 }
 
 /*
