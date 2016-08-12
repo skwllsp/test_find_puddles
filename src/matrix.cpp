@@ -48,7 +48,9 @@ class perimeter {
     const test_ns::entry_pos_t& get_start_inside_point() const;
     test_ns::entry_pos_t get_next_point();
     test_ns::entry_pos_t get_next_inside_point();
-    bool dead_end() const;
+    std::pair<test_ns::entry_pos_t, test_ns::entry_pos_t>
+    get_ext_and_int_points();
+    bool no_more_data();
 
  private:
     const test_ns::sorted_entry_positions_t& outer_area;
@@ -61,9 +63,13 @@ class perimeter {
     test_ns::entry_pos_t inside_cp;
     bool current_point_valid;
     bool dead_end_;
+    test_ns::entry_positions_t visited;
+    std::queue<direction_t> initial_directions;
     bool outside(const test_ns::entry_pos_t&) const;
     bool inside(const test_ns::entry_pos_t&) const;
     void move_point();
+    bool restart_search();
+    bool dead_end() const;
 };
 
 }  // namespace
@@ -78,7 +84,9 @@ perimeter::perimeter(const test_ns::entry_pos_t& initial_user_point,
     initial_user_point(initial_user_point),
     curr_dir(direction_t::right),
     initial_point(initial_user_point),
-    current_point_valid(false), dead_end_{false} {
+    current_point_valid(false), dead_end_{false},
+    initial_directions({direction_t::left,
+        direction_t::up, direction_t::down}) {
     if (!outside(initial_point)) {
         while (!outside(initial_point)) {
             --initial_point.row;
@@ -128,13 +136,53 @@ test_ns::entry_pos_t perimeter::get_next_point() {
 /*
  *
  */
+std::pair<test_ns::entry_pos_t, test_ns::entry_pos_t>
+perimeter::get_ext_and_int_points() {
+    move_point();
+    return std::make_pair(cp, inside_cp);
+}
+
+/*
+ *
+ */
 test_ns::entry_pos_t perimeter::get_next_inside_point() {
     move_point();
     return inside_cp;
 }
 
+/*
+ *
+ */
 bool perimeter::dead_end() const {
     return dead_end_;
+}
+
+/*
+ *
+ */
+bool perimeter::no_more_data() {
+    if (!dead_end_) {
+        return false;
+    } else {
+        while (!restart_search()) {
+        }
+        return !dead_end_;
+    }
+}
+
+/*
+ *
+ */
+bool perimeter::restart_search() {
+    if (initial_directions.empty()) {
+        return false;
+    }
+    current_point_valid = false;
+    dead_end_ = false;
+    curr_dir = initial_directions.front();
+    initial_directions.pop();
+    move_point();
+    return !dead_end_;
 }
 
 /*
@@ -162,7 +210,13 @@ void perimeter::move_point() {
                 }
             }
         } else {
-            if (outside({cp.row-1, cp.col})) {
+            if (outside({cp.row-1, cp.col+1})) {
+                curr_dir = direction_t::up;
+                --cp.row;
+                ++cp.col;
+                --inside_cp.row;
+                ++inside_cp.col;
+            } else if (outside({cp.row-1, cp.col})) {
                 curr_dir = direction_t::up;
                 --cp.row;
                 --inside_cp.row;
@@ -187,7 +241,13 @@ void perimeter::move_point() {
                 }
             }
         } else {
-            if (outside({cp.row, cp.col-1})) {
+            if (outside({cp.row-1, cp.col-1})) {
+                curr_dir = direction_t::left;
+                --cp.row;
+                --cp.col;
+                --inside_cp.row;
+                --inside_cp.col;
+            } else if (outside({cp.row, cp.col-1})) {
                 curr_dir = direction_t::left;
                 --cp.col;
                 --inside_cp.row;
@@ -211,7 +271,13 @@ void perimeter::move_point() {
                 }
             }
         } else {
-            if(outside({cp.row, cp.col+1})) {
+            if(outside({cp.row+1, cp.col+1})) {
+                curr_dir = direction_t::right;
+                ++cp.row;
+                ++cp.col;
+                ++inside_cp.row;
+                ++inside_cp.col;
+            } else if(outside({cp.row, cp.col+1})) {
                 curr_dir = direction_t::right;
                 ++cp.col;
                 ++inside_cp.row;
@@ -237,7 +303,13 @@ void perimeter::move_point() {
                 }
             }
         } else {
-            if (outside({cp.row+1, cp.col})) {
+            if (outside({cp.row+1, cp.col-1})) {
+                curr_dir = direction_t::down;
+                ++cp.row;
+                --cp.col;
+                ++inside_cp.row;
+                --inside_cp.col;
+            } else if (outside({cp.row+1, cp.col})) {
                 curr_dir = direction_t::down;
                 ++cp.row;
                 ++inside_cp.row;
@@ -246,6 +318,10 @@ void perimeter::move_point() {
                 dead_end_ = true;
             }
         }
+    }
+    if (visited.find(cp) == visited.end()) {
+        visited.insert(cp);
+        return;
     }
 }
 
@@ -430,7 +506,8 @@ int test_ns::matrix::find_surface_height(
     int lowest_leak_point = get_height(a_perimeter.get_start_point());
     while (true) {
         entry_pos_t perimeter_next_point (a_perimeter.get_next_point());
-        if (perimeter_next_point == perimeter_start_point) {
+        if (perimeter_next_point == perimeter_start_point ||
+                a_perimeter.no_more_data()) {
             break;
         }
         auto leak_point_h = get_height(perimeter_next_point);
@@ -517,26 +594,26 @@ void test_ns::matrix::find_island_borders(const entry_pos_t& initial_point,
         if (point_to_consider_h >= puddle_h) {
             perimeter a_perimeter(point_to_consider, outer_leaks,
                     this_puddle_points);
-            entry_pos_t perimeter_initial_point =
+            entry_pos_t perimeter_initial_inside_point =
                 a_perimeter.get_start_inside_point();
+            entry_pos_t perimeter_initial_point =
+                a_perimeter.get_start_point();
             sorted_entry_positions_t perimeter_points;
-            perimeter_points.insert(point_to_consider);
-            all_perimeter_points.insert(point_to_consider);
+            perimeter_points.insert(perimeter_initial_inside_point);
+            all_perimeter_points.insert(perimeter_initial_inside_point);
             while (true) {
-                auto next_inside_point = a_perimeter.get_next_inside_point();
-                if (a_perimeter.dead_end()) {
+                auto ext_and_int_points = a_perimeter.get_ext_and_int_points();
+                if (a_perimeter.no_more_data()) {
                     break;
                 }
-                if (next_inside_point == perimeter_initial_point) {
+                if (ext_and_int_points.first == perimeter_initial_point) {
                     break;
                 }
-                perimeter_points.insert(next_inside_point);
-                all_perimeter_points.insert(next_inside_point);
+                perimeter_points.insert(ext_and_int_points.second);
+                all_perimeter_points.insert(ext_and_int_points.second);
             }
-            if (!a_perimeter.dead_end()) {
-                other_border_points.push(std::move(perimeter_points));
-                to_search.push(point_to_consider);
-            }
+            other_border_points.push(std::move(perimeter_points));
+            to_search.push(point_to_consider);
         }
     };
 
@@ -744,7 +821,7 @@ test_ns::matrix::find_puddles() const{
  *
  */
 std::ostream& test_ns::operator<<(std::ostream& os, const test_ns::puddle& p) {
-    os << ", points: [";
+    os << "points: [";
     bool print_comma = false;
     for (auto const & e : p.entries_) {
         if (print_comma) {

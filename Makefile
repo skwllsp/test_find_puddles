@@ -176,15 +176,17 @@ $(BUILD_DIR)/gtest_main.a : $(BUILD_DIR)/gtest-all.o $(BUILD_DIR)/gtest_main.o
 RPATH = -Wl,-rpath,$(shell dirname $(shell which $(CXX)))/../lib64
 
 
-$(BUILD_DIR)/main.o : $(USER_DIR)/main.cpp $(GTEST_HEADERS)
+$(BUILD_DIR)/main.o : $(USER_DIR)/main.cpp \
+                      $(USER_DIR)/matrix.h $(GTEST_HEADERS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(EXTRA_CXXFLAGS) -o $@ -c $<
 
-$(BUILD_DIR)/matrix.o : $(USER_DIR)/matrix.cpp $(GTEST_HEADERS)
+$(BUILD_DIR)/matrix.o : $(USER_DIR)/matrix.cpp \
+                        $(USER_DIR)/matrix.h $(GTEST_HEADERS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(EXTRA_CXXFLAGS) -o $@ -c $<
 
 $(BUILD_DIR)/matrix_unittest.o : \
-					$(USER_DIR)/matrix_unittest.cpp \
-                    $(USER_DIR)/matrix.h $(GTEST_HEADERS)
+						$(USER_DIR)/matrix_unittest.cpp \
+                    	$(USER_DIR)/matrix.h $(GTEST_HEADERS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o $@ -c $<
 
 $(BUILD_DIR)/find_puddles_unittest : $(BUILD_DIR)/matrix.o \
