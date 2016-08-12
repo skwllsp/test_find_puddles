@@ -63,12 +63,16 @@ std::ostream& operator<<(std::ostream&, const puddle&);
 class matrix {
  public:
     matrix(rows_t);
-    std::vector<puddle> find_puddles() const;
+    std::vector<puddle> find_puddles();
 
  private:
     rows_t rows_;
     size_t max_row;
     size_t max_col;
+
+    using heights_t = std::multimap<int, entry_pos_t>;
+    heights_t heights;
+    void get_heights();
     int get_height(const entry_pos_t&) const;
 
     void find_puddles_impl(const sorted_entry_positions_t& border_points,
@@ -96,6 +100,8 @@ class matrix {
             std::function<void(const entry_pos_t&, const entry_pos_t&)>) const;
     bool is_perimeter_connected(
             const sorted_entry_positions_t& border_points) const;
+    void find_connected_area(const entry_pos_t& curr_pos, int h,
+            sorted_entry_positions_t& area);
 };
 
 
