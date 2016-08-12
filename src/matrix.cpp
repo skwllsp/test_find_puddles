@@ -359,7 +359,9 @@ test_ns::matrix::find_puddles() {
             for (auto const & area_entry : area_entries) {
                 if (area_perimeter_entries.find(area_entry) !=
                         area_perimeter_entries.end()) {
-                    puddle_points.insert(area_entry);
+                    if (get_height(area_entry) < lowest_perimeter_h) {
+                        puddle_points.insert(area_entry);
+                    }
                 }
             }
             all_puddles.push_back(std::move(puddle{puddle_points}));
