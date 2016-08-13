@@ -72,36 +72,30 @@ class matrix {
 
     using heights_t = std::multimap<int, entry_pos_t>;
     heights_t heights;
+
+    struct found_area_t {
+        sorted_entry_positions_t perimeter_entries;
+        sorted_entry_positions_t area_entries;
+        sorted_entry_positions_t puddle_points;
+        int puddle_h;
+    };
+    using found_areas_t = std::map<int, found_area_t>;
+    found_areas_t found_areas;
+    int found_areas_index;
+
+    using visited_t = std::unordered_map<entry_pos_t, found_areas_t::iterator,
+        my_hash_t<entry_pos_t>>;
+    visited_t visited;
+
     void get_heights();
     int get_height(const entry_pos_t&) const;
 
-    void find_puddles_impl(const sorted_entry_positions_t& border_points,
-            std::queue<puddle>& found_puddles,
-            std::queue<sorted_entry_positions_t>& other_border_points)
-            const;
-    void find_leak_area(const entry_pos_t& initial_point,
-            sorted_entry_positions_t& leak_points) const;
-    int find_surface_height(
-            const entry_pos_t& initial_point,
-            const sorted_entry_positions_t& outer_leak_points,
-            const sorted_entry_positions_t& flooded_points) const;
-    void find_puddle_points(const entry_pos_t& initial_point,
-            const sorted_entry_positions_t& outer_leak_points,
-            sorted_entry_positions_t& this_puddle_points,
-            int puddle_h,
-            sorted_entry_positions_t& all_flooded_points) const;
-    void find_island_borders(const entry_pos_t& initial_point,
-            const sorted_entry_positions_t& outer_leak_points,
-            const sorted_entry_positions_t& this_puddle_points,
-            int puddle_h,
-            std::queue<sorted_entry_positions_t>& other_border_points,
-            sorted_entry_positions_t& all_perimeter_points) const;
     void call_neighbours(const entry_pos_t& curr_pos,
             std::function<void(const entry_pos_t&, const entry_pos_t&)>) const;
     bool is_perimeter_connected(
             const sorted_entry_positions_t& border_points) const;
-    void find_connected_area(const entry_pos_t& curr_pos, int h,
-            sorted_entry_positions_t& area);
+    void find_connected_area(const entry_pos_t& curr_pos, visited_t& visited,
+            int h, sorted_entry_positions_t& area, bool& area_merged);
 };
 
 

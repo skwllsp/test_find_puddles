@@ -261,6 +261,19 @@ TEST(Matrix, Four5) {
     ASSERT_TRUE( (puddles[1].entries_ == expected) );
 }
 
+TEST(Matrix, Four51) {
+    test_ns::matrix a_matrix(test_ns::rows_t{
+        {4,4,4,3},
+        {4,1,2,3},
+        {4,2,0,3},
+        {4,3,3,3}
+    });
+    auto puddles = a_matrix.find_puddles();
+    ASSERT_EQ (puddles.size(), 1);
+    test_ns::sorted_entry_positions_t expected{ {1,1}, {1,2}, {2,1}, {2,2} };
+    ASSERT_TRUE( (puddles[0].entries_ == expected) );
+}
+
 TEST(Matrix, Four6) {
     test_ns::matrix a_matrix(test_ns::rows_t{
         {2,2,2,2},
@@ -311,8 +324,11 @@ TEST(Matrix, Four9) {
     });
     auto puddles = a_matrix.find_puddles();
     ASSERT_EQ (puddles.size(), 1);
-    test_ns::sorted_entry_positions_t expected{ {1,1}, {1,2}, {2,1}, {2,2},
-        {3,1}, {3,2} };
+    test_ns::sorted_entry_positions_t expected{
+        {1,1}, {1,2},
+        {2,1}, {2,2},
+        {3,1}, {3,2}
+    };
     ASSERT_TRUE( (puddles[0].entries_ == expected) );
 }
 TEST(Matrix, Four10) {

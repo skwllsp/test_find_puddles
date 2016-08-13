@@ -45,6 +45,20 @@ class perimeter {
 /*
  *
  */
+void pss(const test_ns::sorted_entry_positions_t& s) {
+    std::cout << "[ ";
+    std::cout.flush();
+    for (auto const & e : s) {
+        std::cout << "{" << e.row << "," << e.col << "}, ";
+        std::cout.flush();
+    }
+    std::cout << " ]\n";
+    std::cout.flush();
+}
+
+/*
+ *
+ */
 perimeter::perimeter(const test_ns::entry_pos_t& initial_user_point,
             const test_ns::sorted_entry_positions_t& area,
             size_t max_row, size_t max_col)
@@ -100,7 +114,7 @@ void perimeter::move_point() {
     if (curr_dir == direction_t::right) {
         if (cp.col == max_col) {
             curr_dir = direction_t::down;
-            --cp.row;
+            ++cp.row;
         } else {
             if (inside({cp.row, cp.col+1})) {
                 if (cp.row > 0 && inside({cp.row-1, cp.col})) {
@@ -138,7 +152,7 @@ void perimeter::move_point() {
             }
         }
     } else if (curr_dir == direction_t::down) {
-        if (cp.row == max_col) {
+        if (cp.row == max_row) {
             curr_dir = direction_t::left;
             --cp.col;
         } else {
@@ -289,22 +303,43 @@ test_ns::matrix::get_heights() {
  *
  */
 void test_ns::matrix::find_connected_area(
-        const entry_pos_t& initial_point, int initial_h,
-        sorted_entry_positions_t& area) {
+        const entry_pos_t& initial_point, visited_t& visited,
+        int initial_h, sorted_entry_positions_t& area,
+        bool& area_merged) {
     std::queue<entry_pos_t> to_search;
 
-    auto find_higher_or_equal_neighbours = [this, initial_h, &to_search, &area](
+    auto find_higher_or_equal_neighbours =
+            [this, initial_h, &to_search, &area, &visited, &area_merged](
             const entry_pos_t& base_entry, const entry_pos_t& curr_entry) {
+        auto visiter_itr = visited.find(curr_entry);
         auto base_entry_h = this->get_height(base_entry);
         auto curr_entry_h = this->get_height(curr_entry);
         if (base_entry_h <= curr_entry_h) {
-            if (area.find(curr_entry) == area.end() ) {
-                to_search.push(curr_entry);
-                area.insert(curr_entry);
+            if (visiter_itr != visited.end()) {
+                found_area_t& found_area = visiter_itr->second->second;
+                if (curr_entry_h < found_area.puddle_h) {
+                    while (!area.empty()) {
+                        const auto e = *area.begin();
+                        area.erase(area.begin());
+                        found_area.area_entries.insert(e);
+                        visited.insert(std::make_pair(e, visiter_itr->second));
+                        if (found_area.puddle_h >= get_height(e)) {
+                            found_area.puddle_points.insert(e);
+                        }
+                    }
+                    area_merged = true;
+                }
+            }
+            if (!area_merged) {
+                if (area.find(curr_entry) == area.end() ) {
+                    to_search.push(curr_entry);
+                    area.insert(curr_entry);
+                }
             }
         }
     };
     to_search.push(initial_point);
+    area.insert(initial_point);
     while(!to_search.empty()) {
         auto an_entry = to_search.front();
         to_search.pop();
@@ -312,19 +347,20 @@ void test_ns::matrix::find_connected_area(
     }
 }
 
-
 /*
  *
  */
 std::vector<test_ns::puddle>
 test_ns::matrix::find_puddles() {
     std::vector<puddle> all_puddles;
-    if (rows_.empty()) {
+    if (rows_.empty() || rows_.size() < 3) {
         return std::move(all_puddles);
     }
 
     get_heights();
-    entry_positions_t visited;
+    visited_t visited;
+
+    found_areas_index = 0;
 
     for (auto i = heights.begin(); i != heights.end();) {
         auto initial_entry_h = i->first;
@@ -334,9 +370,12 @@ test_ns::matrix::find_puddles() {
             continue;
         }
         sorted_entry_positions_t area_entries;
-        find_connected_area(initial_entry, initial_entry_h, area_entries);
-        for (auto const & e : area_entries) {
-            visited.insert(e);
+        bool area_merged = false;
+        find_connected_area(initial_entry, visited, initial_entry_h,
+                area_entries, area_merged);
+
+        if (area_merged) {
+            continue;
         }
         perimeter area_perimeter(initial_entry, area_entries, max_row, max_col);
         auto area_perimeter_start = area_perimeter.get_start_point();
@@ -349,6 +388,7 @@ test_ns::matrix::find_puddles() {
             if (curr_entry == area_perimeter_start) {
                 break;
             }
+            area_perimeter_entries.insert(curr_entry);
             int curr_entry_h = get_height(curr_entry);
             if (curr_entry_h < lowest_perimeter_h) {
                 lowest_perimeter_h = curr_entry_h;
@@ -357,17 +397,31 @@ test_ns::matrix::find_puddles() {
         sorted_entry_positions_t puddle_points;
         if (initial_entry_h < lowest_perimeter_h) {
             for (auto const & area_entry : area_entries) {
-                if (area_perimeter_entries.find(area_entry) !=
+                if (area_perimeter_entries.find(area_entry) ==
                         area_perimeter_entries.end()) {
-                    if (get_height(area_entry) < lowest_perimeter_h) {
+                    int area_entry_h = get_height(area_entry);
+                    if (area_entry_h < lowest_perimeter_h) {
                         puddle_points.insert(area_entry);
                     }
                 }
             }
-            all_puddles.push_back(std::move(puddle{puddle_points}));
+        }
+        found_area_t found_area{std::move(area_perimeter_entries),
+            area_entries, std::move(puddle_points),
+            lowest_perimeter_h};
+        auto found_area_pair = found_areas.insert(
+                std::make_pair(++found_areas_index,std::move(found_area)));
+        for (auto const & e : area_entries) {
+            visited.insert({e, found_area_pair.first});
         }
     }
 
+    for (auto & found_area_pair : found_areas) {
+        if (!found_area_pair.second.puddle_points.empty()) {
+            puddle a_puddle{std::move(found_area_pair.second.puddle_points)};
+            all_puddles.push_back(std::move(a_puddle));
+        }
+    }
     return std::move(all_puddles);
 }
 
