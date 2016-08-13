@@ -74,6 +74,7 @@ class matrix {
     heights_t heights;
 
     struct found_area_t {
+        int index;
         sorted_entry_positions_t perimeter_entries;
         sorted_entry_positions_t area_entries;
         sorted_entry_positions_t puddle_points;
@@ -89,13 +90,13 @@ class matrix {
 
     void get_heights();
     int get_height(const entry_pos_t&) const;
-
     void call_neighbours(const entry_pos_t& curr_pos,
             std::function<void(const entry_pos_t&, const entry_pos_t&)>) const;
-    bool is_perimeter_connected(
-            const sorted_entry_positions_t& border_points) const;
     void find_connected_area(const entry_pos_t& curr_pos, visited_t& visited,
-            int h, sorted_entry_positions_t& area, bool& area_merged);
+            int h, sorted_entry_positions_t& area, std::set<int>& neighbours);
+    int get_perimeter_h(const sorted_entry_positions_t& perimeter);
+    void find_uncovered_entries(const sorted_entry_positions_t& perimeter,
+            sorted_entry_positions_t& area, const visited_t& visited);
 };
 
 
