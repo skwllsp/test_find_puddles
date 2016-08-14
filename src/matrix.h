@@ -46,6 +46,8 @@ using entry_pos_set_t =
  *
  */
 using entry_pos_ordered_t = std::set<entry_pos_t>;
+using sorted_entry_positions_t = std::set<entry_pos_t>;
+
 struct puddle {
     puddle(entry_pos_set_t&, int height);
     entry_pos_ordered_t entries_;

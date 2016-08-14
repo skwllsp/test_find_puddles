@@ -1,8 +1,22 @@
 #include <algorithm>
 #include <tuple>
 #include <cassert>
-
+#include <iostream>
 #include "matrix.h"
+
+/*
+ *
+ */
+void pss(const test_ns::sorted_entry_positions_t& s) {
+    std::cout << "[ ";
+    std::cout.flush();
+    for (auto const & e : s) {
+        std::cout << "{" << e.row << "," << e.col << "}, ";
+        std::cout.flush();
+    }
+    std::cout << " ]\n";
+    std::cout.flush();
+}
 
 /*
  *
