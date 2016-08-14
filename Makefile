@@ -74,28 +74,33 @@ TESTS = $(BUILD_DIR)/find_puddles
 #CXXFLAGS += -O3
 
 ifeq ($(MAKECMDGOALS),test)
+    CXXFLAGS += -O0
 	BUILD_DIR = ./build.test
 	TESTS = $(BUILD_DIR)/find_puddles_unittest
 endif
 
 ifeq ($(MAKECMDGOALS),run_test)
+    CXXFLAGS += -O0
 	BUILD_DIR = ./build.test
 	TESTS = $(BUILD_DIR)/find_puddles_unittest
 endif
 
 ifeq ($(MAKECMDGOALS),coverage)
+    CXXFLAGS += -O0
 	BUILD_DIR = ./build.coverage
 	EXTRA_CXXFLAGS += -fprofile-arcs -ftest-coverage
 	TESTS = $(BUILD_DIR)/find_puddles_coverage $(BUILD_DIR)/find_puddles_unittest_coverage
 endif
 
 ifeq ($(MAKECMDGOALS),run_coverage)
+    CXXFLAGS += -O0
 	BUILD_DIR = ./build.coverage
 	EXTRA_CXXFLAGS += -fprofile-arcs -ftest-coverage
 	TESTS = $(BUILD_DIR)/find_puddles_coverage $(BUILD_DIR)/find_puddles_unittest_coverage
 endif
 
 ifeq ($(MAKECMDGOALS),coverage_report)
+    CXXFLAGS += -O0
 	BUILD_DIR = ./build.coverage
 	EXTRA_CXXFLAGS += -fprofile-arcs -ftest-coverage
 	TESTS = $(BUILD_DIR)/find_puddles_coverage $(BUILD_DIR)/find_puddles_unittest_coverage
@@ -171,15 +176,17 @@ $(BUILD_DIR)/gtest_main.a : $(BUILD_DIR)/gtest-all.o $(BUILD_DIR)/gtest_main.o
 RPATH = -Wl,-rpath,$(shell dirname $(shell which $(CXX)))/../lib64
 
 
-$(BUILD_DIR)/main.o : $(USER_DIR)/main.cpp $(GTEST_HEADERS)
+$(BUILD_DIR)/main.o : $(USER_DIR)/main.cpp \
+                      $(USER_DIR)/matrix.h $(GTEST_HEADERS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(EXTRA_CXXFLAGS) -o $@ -c $<
 
-$(BUILD_DIR)/matrix.o : $(USER_DIR)/matrix.cpp $(GTEST_HEADERS)
+$(BUILD_DIR)/matrix.o : $(USER_DIR)/matrix.cpp \
+                        $(USER_DIR)/matrix.h $(GTEST_HEADERS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(EXTRA_CXXFLAGS) -o $@ -c $<
 
 $(BUILD_DIR)/matrix_unittest.o : \
-					$(USER_DIR)/matrix_unittest.cpp \
-                    $(USER_DIR)/matrix.h $(GTEST_HEADERS)
+						$(USER_DIR)/matrix_unittest.cpp \
+                    	$(USER_DIR)/matrix.h $(GTEST_HEADERS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o $@ -c $<
 
 $(BUILD_DIR)/find_puddles_unittest : $(BUILD_DIR)/matrix.o \
