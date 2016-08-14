@@ -48,21 +48,8 @@
 
         Сложность алгоритма
  
-1. time complexity
-
-1.1 Составление упорядоченного набора высот - O(N*M)
-
-1.2 Обход высот, обычный случай. Есть N*M разных высот в матрице и на почти на
-каждой высоте элементов меньше чем MAX_SAVED_PER_LEVEL из описания алгоритма, 
-пункт 1.2, то на каждом уровне будет, как правило, выполняться обход только 
-сохраненных записей. Тогда сложность получается N*M.
-
-1.2 Обход высот, худший случай. Для N*M матрицы временная сложность будет 
-O(100*N*M).
-
-1.2 space complexity
-Дополнительная, помимо хранения элементов матрицы, space complexity O(N*M)
- 
+1. time complexity: O(N**2 * M**2)
+2. space complexity: дополнительная, помимо хранения элементов матрицы, O(N*M)
 
         Сборка
 
@@ -79,28 +66,22 @@ O(100*N*M).
 Тесты находятся в файле matrix_unittest.cpp.
 
 Вот пример (с небольшими сокращениями) запуска юниттестов:        
-$ make test && ./build.test/find_puddles_unittest.exe
-make: Nothing to be done for `test'.
+$ make run_test
+./build.test/find_puddles_unittest
 Running main() from gtest_main.cc
-[==========] Running 49 tests from 1 test case.
+[==========] Running 80 tests from 1 test case.
 [----------] Global test environment set-up.
-[----------] 49 tests from Matrix
-[ RUN      ] Matrix.Zero1
-[       OK ] Matrix.Zero1 (0 ms)
-[ RUN      ] Matrix.One1
-[       OK ] Matrix.One1 (0 ms)
-[ RUN      ] Matrix.One2
-[       OK ] Matrix.One2 (0 ms)
+[----------] 80 tests from Matrix
 ...
 [ RUN      ] Matrix.Five14
 [       OK ] Matrix.Five14 (0 ms)
 [ RUN      ] Matrix.Five15
 [       OK ] Matrix.Five15 (0 ms)
-[----------] 49 tests from Matrix (16 ms total)
+[----------] 80 tests from Matrix (16 ms total)
 
 [----------] Global test environment tear-down
-[==========] 49 tests from 1 test case ran. (32 ms total)
-[  PASSED  ] 49 tests.
+[==========] 80 tests from 1 test case ran. (16 ms total)
+[  PASSED  ] 80 tests.
         
 
         Пример вывода программы
@@ -112,6 +93,6 @@ $
         
 2. Найдено несколько луж
 
-$ ./build/find_puddles.exe < test2.txt
-height: 0, points: [{6,1}]
-height: 1, points: [{1,1}, {1,2}]
+$ ./build/find_puddles.exe < ./test2.txt
+points: [{6,1}]
+points: [{1,1}, {1,2}]
