@@ -5,9 +5,7 @@
 #include <set>
 #include <map>
 #include <list>
-#include <queue>
 #include <unordered_set>
-#include <unordered_map>
 #include <ostream>
 #include <functional>
 
@@ -31,9 +29,6 @@ struct entry_pos_t {
     bool operator==(const entry_pos_t& rhs) const {
         return std::tie(row, col) == std::tie(rhs.row, rhs.col);
     }
-    bool operator!=(const entry_pos_t& rhs) const {
-        return !operator==(rhs);
-    }
 };
 
 template <class T> struct my_hash_t;
@@ -45,15 +40,18 @@ template<> struct my_hash_t<entry_pos_t> {
     }
 };
 
-using entry_pos_set_t = std::unordered_set<entry_pos_t, my_hash_t<entry_pos_t>>;
-using entry_positions_t = entry_pos_set_t;
-using sorted_entry_positions_t = std::set<entry_pos_t>;
-
+using entry_pos_set_t =
+        std::unordered_set<entry_pos_t, my_hash_t<entry_pos_t>>;
 /*
  *
  */
+using entry_pos_ordered_t = std::set<entry_pos_t>;
+using sorted_entry_positions_t = std::set<entry_pos_t>;
+
 struct puddle {
-    sorted_entry_positions_t entries_;
+    puddle(entry_pos_set_t&, int height);
+    entry_pos_ordered_t entries_;
+    int height_;
 };
 std::ostream& operator<<(std::ostream&, const puddle&);
 
@@ -67,37 +65,23 @@ class matrix {
 
  private:
     rows_t rows_;
-    size_t max_row;
-    size_t max_col;
+    using entry_positions_t = std::vector<entry_pos_t>;
+    struct height_data_t {
+        size_t positions;
+        entry_positions_t some_entries;
+    };
+    using heights_t = std::map<int, height_data_t>;
+    void get_heights(heights_t&) const;
     int get_height(const entry_pos_t&) const;
-
-    void find_puddles_impl(const sorted_entry_positions_t& border_points,
-            std::queue<puddle>& found_puddles,
-            std::queue<sorted_entry_positions_t>& other_border_points)
-            const;
-    void find_leak_area(const entry_pos_t& initial_point,
-            sorted_entry_positions_t& leak_points) const;
-    int find_surface_height(
-            const entry_pos_t& initial_point,
-            const sorted_entry_positions_t& outer_leak_points,
-            const sorted_entry_positions_t& flooded_points) const;
-    void find_puddle_points(const entry_pos_t& initial_point,
-            const sorted_entry_positions_t& outer_leak_points,
-            sorted_entry_positions_t& this_puddle_points,
-            int puddle_h,
-            sorted_entry_positions_t& all_flooded_points) const;
-    void find_island_borders(const entry_pos_t& initial_point,
-            const sorted_entry_positions_t& outer_leak_points,
-            const sorted_entry_positions_t& this_puddle_points,
-            int puddle_h,
-            std::queue<sorted_entry_positions_t>& other_border_points,
-            sorted_entry_positions_t& all_perimeter_points) const;
-    void call_neighbours(const entry_pos_t& curr_pos,
-            std::function<void(const entry_pos_t&, const entry_pos_t&)>) const;
-    bool is_perimeter_connected(
-            const sorted_entry_positions_t& border_points) const;
+    bool find_one_puddle(int entry_h, const entry_pos_t&,
+            const entry_pos_set_t& leaks_pos,
+            entry_pos_set_t& searched_entries,
+            entry_pos_set_t& below_level_entries) const;
+    void find_one_puddle_and_update(int entry_h, const entry_pos_t&,
+            entry_pos_set_t& puddle_pos, entry_pos_set_t& leaks_pos,
+            std::list<puddle>& puddles,
+            size_t& yet_not_found_positions) const;
 };
-
 
 }  // namespace test_ns
 
